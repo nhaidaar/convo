@@ -37,7 +37,7 @@ class ChatCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: blue,
+              backgroundColor: Colors.transparent,
               backgroundImage: AssetImage(profilePictureUrl),
             ),
             const SizedBox(

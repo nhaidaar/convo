@@ -1,5 +1,7 @@
+import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -53,6 +55,20 @@ class ProfilePage extends StatelessWidget {
             leading: const Icon(Icons.edit),
             title: Text(
               'Edit Profile',
+              style: mediumTS.copyWith(fontSize: 18),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios),
+          ),
+          const Divider(
+            thickness: 1,
+          ),
+          ListTile(
+            onTap: () {
+              context.read<AuthBloc>().add(SignOutEvent());
+            },
+            leading: const Icon(Icons.logout),
+            title: Text(
+              'Log out',
               style: mediumTS.copyWith(fontSize: 18),
             ),
             trailing: const Icon(Icons.arrow_forward_ios),

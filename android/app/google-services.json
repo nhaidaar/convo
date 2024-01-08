@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "559832169151",
+    "project_id": "nhai-convo",
+    "storage_bucket": "nhai-convo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559832169151:android:a06b58aff0fb67927c640a",
+        "android_client_info": {
+          "package_name": "com.example.convo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5ZxZ98QOqTlxfUZPUJvKqOdz5GXunC1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559832169151:android:06f99de8e151a6e77c640a",
+        "android_client_info": {
+          "package_name": "com.nhaidaar.convo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5ZxZ98QOqTlxfUZPUJvKqOdz5GXunC1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
