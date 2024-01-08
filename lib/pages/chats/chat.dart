@@ -1,9 +1,19 @@
+import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/pages/chats/widgets/chat_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
+
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -40,59 +50,65 @@ class ChatPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: const [
-                ChatCard(
-                  title: 'Nola Safyan',
-                  lastMessage: 'Dimanaaa',
-                  lastMessageTime: '19.07',
-                  profilePictureUrl: 'assets/images/female1.jpg',
-                  messageUnread: 8,
+            BlocProvider(
+              create: (context) => ChatBloc()
+                ..add(
+                  GetAllPersonalChatEvent(user!.uid),
                 ),
-                ChatCard(
-                  title: 'Rayyan',
-                  lastMessage: 'Fal...',
-                  lastMessageTime: '19.03',
-                  profilePictureUrl: 'assets/images/male1.jpg',
-                  messageUnread: 1,
-                ),
-                ChatCard(
-                  title: 'Irsyad',
-                  lastMessage: 'Gas ae',
-                  lastMessageTime: '19.01',
-                  profilePictureUrl: 'assets/images/male1.jpg',
-                  messageUnread: 0,
-                ),
-              ],
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (context, state) {
+                  if (state is GetAllChatSuccess) {
+                    return ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: state.data.map((chatRoom) {
+                        return ChatCard(model: chatRoom);
+                      }).toList(),
+                    );
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: blue,
+                    ),
+                  );
+                },
+              ),
             ),
             ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               children: const [
-                ChatCard(
-                  title: 'Nola Safyan',
-                  lastMessage: 'Dimanaaa',
-                  lastMessageTime: '19.07',
-                  profilePictureUrl: 'assets/images/female1.jpg',
-                  messageUnread: 8,
-                ),
-                ChatCard(
-                  title: 'Rayyan',
-                  lastMessage: 'Fal...',
-                  lastMessageTime: '19.03',
-                  profilePictureUrl: 'assets/images/male1.jpg',
-                  messageUnread: 1,
-                ),
-                ChatCard(
-                  title: 'Irsyad',
-                  lastMessage: 'Gas ae',
-                  lastMessageTime: '19.01',
-                  profilePictureUrl: 'assets/images/male1.jpg',
-                  messageUnread: 0,
-                ),
+                Center(child: Text('Coming Soon!')),
+                // ChatCard(
+                //   title: 'Nola Safyan',
+                //   lastMessage: 'Dimanaaa',
+                //   lastMessageTime: '19.07',
+                //   profilePictureUrl: 'assets/images/female1.jpg',
+                //   messageUnread: 8,
+                // ),
+                // ChatCard(
+                //   title: 'Rayyan',
+                //   lastMessage: 'Fal...',
+                //   lastMessageTime: '19.03',
+                //   profilePictureUrl: 'assets/images/male1.jpg',
+                //   messageUnread: 1,
+                // ),
+                // ChatCard(
+                //   title: 'Irsyad',
+                //   lastMessage: 'Gas ae',
+                //   lastMessageTime: '19.01',
+                //   profilePictureUrl: 'assets/images/male1.jpg',
+                //   messageUnread: 0,
+                // ),
               ],
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {},
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          backgroundColor: blue,
+          child: const Icon(Icons.add),
         ),
       ),
     );

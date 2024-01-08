@@ -28,3 +28,11 @@ final class UserStorageSuccess extends UserState {
   @override
   List<Object> get props => [url];
 }
+
+final class UserGetDataSuccess extends UserState {
+  final UserModel model;
+  const UserGetDataSuccess(this.model);
+
+  @override
+  List<Object> get props => [model];
+}

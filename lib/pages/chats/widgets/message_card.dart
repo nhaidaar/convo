@@ -1,9 +1,11 @@
+import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/models/chat_model.dart';
 import 'package:flutter/material.dart';
 
 class MessageOut extends StatelessWidget {
-  final String message;
-  const MessageOut({super.key, required this.message});
+  final ChatModel model;
+  const MessageOut({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +15,29 @@ class MessageOut extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(
-            '19.07',
-            style: regularTS.copyWith(fontSize: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                formatDate(model.sendAt),
+                style: regularTS.copyWith(fontSize: 12),
+              ),
+              const SizedBox(
+                height: 4,
+              ),
+              Text(
+                formatTime(model.sendAt),
+                style: regularTS.copyWith(fontSize: 12),
+              )
+            ],
           ),
           const SizedBox(
             width: 12,
           ),
           Container(
-            width: MediaQuery.of(context).size.width / 2,
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width / 2,
+            ),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.only(
@@ -32,7 +48,7 @@ class MessageOut extends StatelessWidget {
               color: blue,
             ),
             child: Text(
-              message,
+              model.message,
               style: regularTS.copyWith(color: Colors.white),
             ),
           ),
@@ -43,8 +59,8 @@ class MessageOut extends StatelessWidget {
 }
 
 class MessageIn extends StatelessWidget {
-  final String message;
-  const MessageIn({super.key, required this.message});
+  final ChatModel model;
+  const MessageIn({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +71,9 @@ class MessageIn extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
-            width: MediaQuery.of(context).size.width / 2,
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width / 2,
+            ),
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(
@@ -66,16 +84,28 @@ class MessageIn extends StatelessWidget {
               color: Colors.white,
             ),
             child: Text(
-              message,
+              model.message,
               style: regularTS,
             ),
           ),
           const SizedBox(
             width: 12,
           ),
-          Text(
-            '19.07',
-            style: regularTS.copyWith(fontSize: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formatDate(model.sendAt),
+                style: regularTS.copyWith(fontSize: 12),
+              ),
+              const SizedBox(
+                height: 4,
+              ),
+              Text(
+                formatTime(model.sendAt),
+                style: regularTS.copyWith(fontSize: 12),
+              )
+            ],
           ),
         ],
       ),

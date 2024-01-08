@@ -1,4 +1,5 @@
 import 'package:convo/blocs/auth/auth_bloc.dart';
+import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/firebase_options.dart';
 import 'package:convo/models/user_model.dart';
 import 'package:convo/pages/auth/login_phone.dart';
@@ -25,10 +26,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return RepositoryProvider(
       create: (context) => AuthRepository(),
-      child: BlocProvider(
-        create: (context) => AuthBloc(
-          auth: RepositoryProvider.of<AuthRepository>(context),
-        ),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AuthBloc(
+              auth: RepositoryProvider.of<AuthRepository>(context),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => ChatBloc(),
+          ),
+        ],
         child: MaterialApp(
           theme: ThemeData(
             fontFamily: 'SFProDisplay',
@@ -48,16 +56,19 @@ class MyApp extends StatelessWidget {
                   future:
                       UserService().doesUserDataExists(userSnapshot.data!.uid),
                   builder: (context, dataSnapshot) {
-                    if (dataSnapshot.data == true) {
+                    if (dataSnapshot.hasData) {
+                      if (!dataSnapshot.data!) {
+                        return SetProfilePage(
+                          model: UserModel(
+                            uid: userSnapshot.data!.uid,
+                            credentials: userSnapshot.data!.phoneNumber ??
+                                userSnapshot.data!.email,
+                          ),
+                        );
+                      }
                       return const Home();
                     }
-                    return SetProfilePage(
-                      model: UserModel(
-                        uid: userSnapshot.data!.uid,
-                        credentials: userSnapshot.data!.phoneNumber ??
-                            userSnapshot.data!.email,
-                      ),
-                    );
+                    return const Home();
                   },
                 );
               }

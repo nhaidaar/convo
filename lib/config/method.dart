@@ -3,6 +3,7 @@ import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 void showSnackbar(BuildContext context, String message) {
   Flushbar(
@@ -41,4 +42,24 @@ Future<CroppedFile?> cropImage(XFile image) async {
     ],
   );
   return cropped;
+}
+
+String formatTime(DateTime dateTime) {
+  return DateFormat('HH:mm').format(dateTime);
+}
+
+String formatDate(DateTime dateTime) {
+  DateTime now = DateTime.now();
+  DateTime today = DateTime(now.year, now.month, now.day);
+  DateTime yesterday = DateTime(now.year, now.month, now.day - 1);
+
+  if (dateTime.isAfter(today)) {
+    return '';
+  } else if (dateTime.isAfter(yesterday)) {
+    return 'Yesterday';
+  } else if (dateTime.weekday == now.weekday) {
+    return DateFormat('EEEE').format(dateTime); // Display the day of the week
+  } else {
+    return DateFormat('dd.MM').format(dateTime); // Display the date
+  }
 }

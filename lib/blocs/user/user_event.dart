@@ -23,3 +23,11 @@ class PostUserDataEvent extends UserEvent {
   @override
   List<Object> get props => [user];
 }
+
+class GetUserDataEvent extends UserEvent {
+  final String uid;
+  const GetUserDataEvent(this.uid);
+
+  @override
+  List<Object> get props => [uid];
+}
