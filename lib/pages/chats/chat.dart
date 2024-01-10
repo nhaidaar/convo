@@ -1,10 +1,13 @@
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/pages/chats/create_group.dart';
 import 'package:convo/pages/chats/search.dart';
 import 'package:convo/pages/chats/widgets/chat_card.dart';
+import 'package:convo/pages/chats/widgets/group_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -51,59 +54,105 @@ class _ChatPageState extends State<ChatPage> {
         ),
         body: TabBarView(
           children: [
-            BlocProvider(
-              create: (context) => ChatBloc()..add(GetChatListEvent(user!.uid)),
-              child: BlocBuilder<ChatBloc, ChatState>(
-                builder: (context, state) {
-                  if (state is GetChatListSuccess) {
-                    if (state.data.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'Welcome aboard!\nChat list is empty. Why not say hello?',
-                          style: mediumTS,
-                          textAlign: TextAlign.center,
-                        ),
+            Scaffold(
+              body: BlocProvider(
+                create: (context) =>
+                    ChatBloc()..add(GetChatListEvent(user!.uid)),
+                child: BlocBuilder<ChatBloc, ChatState>(
+                  builder: (context, state) {
+                    if (state is GetChatListSuccess) {
+                      if (state.data.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Welcome aboard!\nChat list is empty. Why not say hello?',
+                            style: mediumTS,
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+                      return ListView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: state.data.map((chatRoom) {
+                          return ChatCard(model: chatRoom);
+                        }).toList(),
                       );
                     }
-                    return ListView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      children: state.data.map((chatRoom) {
-                        return ChatCard(model: chatRoom);
-                      }).toList(),
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: blue,
+                      ),
                     );
-                  }
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: blue,
+                  },
+                ),
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      child: const SearchUser(),
+                      type: PageTransitionType.rightToLeft,
                     ),
                   );
                 },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                backgroundColor: blue,
+                child: const Icon(Icons.add),
               ),
             ),
-            Center(
-              child: Text(
-                'Coming Soon!',
-                style: mediumTS,
-                textAlign: TextAlign.center,
+            Scaffold(
+              body: BlocProvider(
+                create: (context) =>
+                    ChatBloc()..add(GetGroupListEvent(user!.uid)),
+                child: BlocBuilder<ChatBloc, ChatState>(
+                  builder: (context, state) {
+                    if (state is GetGroupListSuccess) {
+                      if (state.data.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'Welcome aboard!\nChat list is empty. Why not say hello?',
+                            style: mediumTS,
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+                      return ListView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: state.data.map((groupRoom) {
+                          return GroupCard(model: groupRoom);
+                        }).toList(),
+                      );
+                    }
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: blue,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      child: const CreateGroup(),
+                      type: PageTransitionType.rightToLeft,
+                    ),
+                  );
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                backgroundColor: blue,
+                child: const Icon(Icons.group_add),
               ),
             ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SearchUser(),
-              ),
-            );
-          },
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          backgroundColor: blue,
-          child: const Icon(Icons.add),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:convo/models/chat_model.dart';
 import 'package:convo/models/chatroom_model.dart';
+import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/models/user_model.dart';
 import 'package:convo/services/user_services.dart';
 
@@ -10,7 +11,6 @@ class ChatService {
   Future<ChatRoomModel> makeChatRoom({
     required String myUid,
     required String interlocutorUid,
-    // required ChatModel chat,
   }) async {
     String roomId = '';
 
@@ -28,8 +28,6 @@ class ChatService {
         'roomId': roomId,
       }, SetOptions(merge: true));
 
-      // await sendMessage(roomId: roomId, model: chat);
-
       UserModel? interlocutor =
           await UserService().getUserData(interlocutorUid);
 
@@ -40,6 +38,37 @@ class ChatService {
           interlocutorUid,
         ],
         interlocutor: interlocutor,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<GroupRoomModel> makeGroupRoom(List<UserModel> members) async {
+    String roomId = '';
+    List<String> membersUid = [];
+
+    for (UserModel user in members) {
+      if (user.uid != null) {
+        membersUid.add(user.uid!);
+      }
+    }
+
+    try {
+      await _firestore.collection('chats').add({
+        'members': membersUid,
+      }).then((value) {
+        roomId = value.id;
+      });
+
+      await _firestore.collection('chats').doc(roomId).set({
+        'roomId': roomId,
+      }, SetOptions(merge: true));
+
+      return GroupRoomModel(
+        roomId: roomId,
+        members: membersUid,
+        interlocutors: members,
       );
     } catch (e) {
       rethrow;
@@ -105,21 +134,61 @@ class ChatService {
       for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-        List<String> members = List<String>.from(data['members']);
-        members.remove(uid);
+        if (data['members'].length == 2) {
+          List<String> members = List<String>.from(data['members']);
+          members.remove(uid);
 
-        UserModel? interlocutor = await UserService().getUserData(members[0]);
+          UserModel? interlocutor = await UserService().getUserData(members[0]);
 
-        ChatRoomModel chatRoom = ChatRoomModel(
-          roomId: data['roomId'],
-          members: members,
-          interlocutor: interlocutor,
-        );
+          ChatRoomModel chatRoom = ChatRoomModel(
+            roomId: data['roomId'],
+            members: members,
+            interlocutor: interlocutor,
+          );
 
-        chatRooms.add(chatRoom);
+          chatRooms.add(chatRoom);
+        }
       }
 
       return chatRooms;
+    });
+  }
+
+  Stream<List<GroupRoomModel>> streamGroupList(String uid) {
+    return _firestore
+        .collection('chats')
+        .where('members', arrayContains: uid)
+        .snapshots()
+        .asyncMap((chatRoomSnapshot) async {
+      List<GroupRoomModel> groupRooms = [];
+
+      for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+        if (data['members'].length > 2) {
+          List<String> members = List<String>.from(data['members']);
+          members.remove(uid);
+
+          List<UserModel> interlocutors = [];
+          for (String membersUid in members) {
+            UserModel? interlocutor =
+                await UserService().getUserData(membersUid);
+            if (interlocutor != null) {
+              interlocutors.add(interlocutor);
+            }
+          }
+
+          GroupRoomModel groupRoom = GroupRoomModel(
+            roomId: data['roomId'],
+            members: members,
+            interlocutors: interlocutors,
+          );
+
+          groupRooms.add(groupRoom);
+        }
+      }
+
+      return groupRooms;
     });
   }
 

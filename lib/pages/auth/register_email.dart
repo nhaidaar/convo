@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class RegisterEmailPage extends StatefulWidget {
   const RegisterEmailPage({super.key});
@@ -59,13 +60,14 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
           if (state is AuthSuccess) {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => SetProfilePage(
+              PageTransition(
+                child: SetProfilePage(
                   model: UserModel(
                     uid: FirebaseAuth.instance.currentUser!.uid,
                     credentials: emailController.text,
                   ),
                 ),
+                type: PageTransitionType.fade,
               ),
               (route) => false,
             );
@@ -170,9 +172,9 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
                               ..onTap = () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const LoginEmailPage(),
+                                  PageTransition(
+                                    child: const LoginEmailPage(),
+                                    type: PageTransitionType.rightToLeft,
                                   ),
                                 );
                               }),

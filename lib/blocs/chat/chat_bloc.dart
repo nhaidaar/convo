@@ -1,5 +1,7 @@
 import 'package:convo/models/chat_model.dart';
 import 'package:convo/models/chatroom_model.dart';
+import 'package:convo/models/grouproom_model.dart';
+import 'package:convo/models/user_model.dart';
 import 'package:convo/services/chat_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -17,6 +19,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           _chatService.streamChatList(event.uid),
           onData: (data) => emit(
             GetChatListSuccess(data),
+          ),
+          onError: (error, stackTrace) => emit(
+            ChatError(
+              error.toString(),
+            ),
+          ),
+        );
+      },
+    );
+    on<GetGroupListEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamGroupList(event.uid),
+          onData: (data) => emit(
+            GetGroupListSuccess(data),
           ),
           onError: (error, stackTrace) => emit(
             ChatError(
@@ -74,9 +91,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final data = await _chatService.makeChatRoom(
           myUid: event.myUid,
           interlocutorUid: event.interlocutorUid,
-          // chat: event.chat,
         );
         emit(MakeChatRoomSuccess(data));
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<MakeGroupRoomEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        final data = await _chatService.makeGroupRoom(event.members);
+        emit(MakeGroupRoomSuccess(data));
       } catch (e) {
         emit(ChatError(e.toString()));
       }

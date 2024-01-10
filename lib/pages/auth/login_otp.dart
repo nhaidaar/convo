@@ -9,8 +9,10 @@ import 'package:convo/pages/home.dart';
 import 'package:convo/services/user_services.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:pinput/pinput.dart';
 
 class LoginOtp extends StatefulWidget {
@@ -58,21 +60,23 @@ class _LoginOtpState extends State<LoginOtp> {
             if (userDataExists) {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const Home(),
+                PageTransition(
+                  child: const Home(),
+                  type: PageTransitionType.fade,
                 ),
                 (route) => false,
               );
             } else {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => SetProfilePage(
+                PageTransition(
+                  child: SetProfilePage(
                     model: UserModel(
                       uid: user.uid,
                       credentials: user.phoneNumber ?? user.email,
                     ),
                   ),
+                  type: PageTransitionType.fade,
                 ),
                 (route) => false,
               );
@@ -132,10 +136,13 @@ class _LoginOtpState extends State<LoginOtp> {
                         style: mediumTS.copyWith(fontSize: 15),
                         children: [
                           TextSpan(
-                            text: 'Resend',
-                            style:
-                                semiboldTS.copyWith(fontSize: 15, color: blue),
-                          ),
+                              text: 'Resend',
+                              style: semiboldTS.copyWith(
+                                  fontSize: 15, color: blue),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  showSnackbar(context, 'Currently disabled!');
+                                }),
                         ],
                       ),
                       textAlign: TextAlign.center,

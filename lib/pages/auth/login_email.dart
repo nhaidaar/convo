@@ -9,6 +9,7 @@ import 'package:convo/widgets/custom_textfield.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class LoginEmailPage extends StatefulWidget {
   const LoginEmailPage({super.key});
@@ -58,8 +59,9 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
           if (state is AuthSuccess) {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => const Home(),
+              PageTransition(
+                child: const Home(),
+                type: PageTransitionType.fade,
               ),
               (route) => false,
             );
@@ -136,8 +138,9 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const ForgotPasswordPage(),
+                        PageTransition(
+                          child: const ForgotPasswordPage(),
+                          type: PageTransitionType.rightToLeft,
                         ),
                       );
                     },
@@ -182,9 +185,9 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                               ..onTap = () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const RegisterEmailPage(),
+                                  PageTransition(
+                                    child: const RegisterEmailPage(),
+                                    type: PageTransitionType.rightToLeft,
                                   ),
                                 );
                               }),

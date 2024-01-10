@@ -7,8 +7,8 @@ import 'package:convo/services/chat_services.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class SearchUser extends StatefulWidget {
   const SearchUser({super.key});
@@ -37,8 +37,9 @@ class _SearchUserState extends State<SearchUser> {
             if (state is MakeChatRoomSuccess) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ChatRoom(model: state.data),
+                PageTransition(
+                  child: ChatRoom(model: state.data),
+                  type: PageTransitionType.rightToLeft,
                 ),
               );
             }
@@ -58,7 +59,8 @@ class _SearchUserState extends State<SearchUser> {
                   ),
                 ),
                 body: ListView(
-                  padding: const EdgeInsets.all(30),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                   children: [
                     Text(
                       'Search by Username',
@@ -126,10 +128,11 @@ class _SearchUserState extends State<SearchUser> {
                                                 )
                                               : Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        ChatRoom(model: value),
-                                                  ),
+                                                  PageTransition(
+                                                      child: ChatRoom(
+                                                          model: value),
+                                                      type: PageTransitionType
+                                                          .rightToLeft),
                                                 );
                                         });
                                       });

@@ -11,6 +11,7 @@ import 'package:convo/widgets/custom_button.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class SetProfilePage extends StatefulWidget {
   final UserModel model;
@@ -68,8 +69,9 @@ class _SetProfilePageState extends State<SetProfilePage> {
           if (state is UserSuccess) {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(
-                builder: (context) => const Home(),
+              PageTransition(
+                child: const Home(),
+                type: PageTransitionType.fade,
               ),
               (route) => false,
             );
@@ -115,27 +117,22 @@ class _SetProfilePageState extends State<SetProfilePage> {
                       }
                     },
                     child: Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 80,
-                            backgroundColor: Colors.grey.shade300,
-                          ),
-                          FittedBox(
-                            fit: BoxFit.contain,
-                            child: CircleAvatar(
-                              radius: 70,
-                              backgroundColor: Colors.white,
-                              foregroundImage:
-                                  image != null ? FileImage(image!) : null,
-                              child: Image.asset(
-                                'assets/icons/add_photo.png',
-                                scale: 2,
-                              ),
+                      child: CircleAvatar(
+                        radius: 80,
+                        backgroundColor: Colors.grey.shade300,
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: CircleAvatar(
+                            radius: 70,
+                            backgroundColor: Colors.white,
+                            foregroundImage:
+                                image != null ? FileImage(image!) : null,
+                            child: Image.asset(
+                              'assets/icons/add_photo.png',
+                              scale: 2,
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),

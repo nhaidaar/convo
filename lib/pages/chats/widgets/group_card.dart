@@ -1,23 +1,22 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/models/chatroom_model.dart';
-import 'package:convo/pages/chats/chat_room.dart';
+import 'package:convo/models/grouproom_model.dart';
+import 'package:convo/pages/chats/group_room.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 
-class ChatCard extends StatefulWidget {
-  final ChatRoomModel model;
-  const ChatCard({super.key, required this.model});
+class GroupCard extends StatefulWidget {
+  final GroupRoomModel model;
+  const GroupCard({super.key, required this.model});
 
   @override
-  State<ChatCard> createState() => _ChatCardState();
+  State<GroupCard> createState() => _GroupCardState();
 }
 
-class _ChatCardState extends State<ChatCard> {
+class _GroupCardState extends State<GroupCard> {
   final user = FirebaseAuth.instance.currentUser;
 
   @override
@@ -32,7 +31,7 @@ class _ChatCardState extends State<ChatCard> {
           Navigator.push(
             context,
             PageTransition(
-              child: ChatRoom(model: widget.model),
+              child: GroupRoom(model: widget.model),
               type: PageTransitionType.rightToLeft,
             ),
           );
@@ -49,36 +48,15 @@ class _ChatCardState extends State<ChatCard> {
               ),
               child: Row(
                 children: [
-                  CachedNetworkImage(
-                    imageUrl:
-                        widget.model.interlocutor!.profilePicture.toString(),
-                    imageBuilder: (context, imageProvider) {
-                      return CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.transparent,
-                        foregroundImage: imageProvider,
-                      );
-                    },
-                    placeholder: (context, url) {
-                      return const CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage(
-                          'assets/images/profile.jpg',
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(
-                          widget.model.interlocutor!.displayName.toString(),
+                          widget.model.interlocutors!
+                              .map((user) => user.displayName)
+                              .join(', '),
                           style: semiboldTS.copyWith(fontSize: 18),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

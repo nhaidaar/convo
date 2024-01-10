@@ -6,6 +6,7 @@ import 'package:convo/pages/chats/chat.dart';
 import 'package:convo/pages/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -29,8 +30,9 @@ class _HomeState extends State<Home> {
         if (state is UnAuthenticated) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => const LoginPage(),
+            PageTransition(
+              child: const LoginPage(),
+              type: PageTransitionType.fade,
             ),
             (route) => false,
           );

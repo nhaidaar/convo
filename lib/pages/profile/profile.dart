@@ -1,12 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
-import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/pages/profile/edit_profile.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -68,8 +69,18 @@ class ProfilePage extends StatelessWidget {
                     height: 40,
                   ),
                   ListTile(
-                    onTap: () => showSnackbar(context, 'message'),
-                    leading: const Icon(Icons.edit),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          child: EditProfilePage(user: state.model),
+                          type: PageTransitionType.rightToLeft,
+                        ),
+                      );
+                    },
+                    leading: const ImageIcon(
+                      AssetImage('assets/icons/edit.png'),
+                    ),
                     title: Text(
                       'Edit Profile',
                       style: mediumTS.copyWith(fontSize: 18),
@@ -93,7 +104,8 @@ class ProfilePage extends StatelessWidget {
                                 style: semiboldTS,
                                 textAlign: TextAlign.center,
                               ),
-                              titlePadding: const EdgeInsets.all(30),
+                              titlePadding:
+                                  const EdgeInsets.fromLTRB(30, 30, 30, 10),
                               actions: [
                                 Row(
                                   children: [
@@ -122,12 +134,18 @@ class ProfilePage extends StatelessWidget {
                             );
                           });
                     },
-                    leading: const Icon(Icons.logout),
+                    leading: const ImageIcon(
+                      AssetImage('assets/icons/logout.png'),
+                      color: Colors.red,
+                    ),
                     title: Text(
                       'Log out',
-                      style: mediumTS.copyWith(fontSize: 18),
+                      style: mediumTS.copyWith(fontSize: 18, color: Colors.red),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.red,
+                    ),
                   ),
                 ],
               ),

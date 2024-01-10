@@ -10,6 +10,7 @@ import 'package:convo/widgets/custom_textfield.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -55,19 +56,23 @@ class _LoginPageState extends State<LoginPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthOtpSent) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => LoginOtp(
+            Navigator.push(
+              context,
+              PageTransition(
+                child: LoginOtp(
                   phoneNumber: countryCode + phoneController.text,
                   verificationId: state.verificationId,
                 ),
+                type: PageTransitionType.rightToLeft,
               ),
             );
           }
           if (state is AuthSuccess) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => const Home(),
+            Navigator.push(
+              context,
+              PageTransition(
+                child: const Home(),
+                type: PageTransitionType.rightToLeft,
               ),
             );
           }
@@ -184,15 +189,18 @@ class _LoginPageState extends State<LoginPage> {
                         action: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginEmailPage(),
+                            PageTransition(
+                              child: const LoginEmailPage(),
+                              type: PageTransitionType.rightToLeft,
                             ),
                           );
                         },
                       ),
                       LoginCircle(
                         iconUrl: 'assets/icons/login_google.png',
-                        action: () {},
+                        action: () {
+                          showSnackbar(context, 'Coming soon!');
+                        },
                       ),
                     ],
                   )

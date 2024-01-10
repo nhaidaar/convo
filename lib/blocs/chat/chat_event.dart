@@ -15,6 +15,14 @@ class GetChatListEvent extends ChatEvent {
   List<Object> get props => [uid];
 }
 
+class GetGroupListEvent extends ChatEvent {
+  final String uid;
+  const GetGroupListEvent(this.uid);
+
+  @override
+  List<Object> get props => [uid];
+}
+
 class GetAllMessageEvent extends ChatEvent {
   final String roomId;
   const GetAllMessageEvent(this.roomId);
@@ -46,16 +54,19 @@ class SendMessageEvent extends ChatEvent {
 class MakeChatRoomEvent extends ChatEvent {
   final String myUid;
   final String interlocutorUid;
-  // final ChatModel chat;
   const MakeChatRoomEvent({
     required this.myUid,
     required this.interlocutorUid,
-    // required this.chat,
   });
 
   @override
-  List<Object> get props => [
-        myUid, interlocutorUid,
-        //  chat
-      ];
+  List<Object> get props => [myUid, interlocutorUid];
+}
+
+class MakeGroupRoomEvent extends ChatEvent {
+  final List<UserModel> members;
+  const MakeGroupRoomEvent(this.members);
+
+  @override
+  List<Object> get props => [members];
 }

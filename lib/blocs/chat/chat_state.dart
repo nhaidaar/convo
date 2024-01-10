@@ -29,6 +29,14 @@ final class GetChatListSuccess extends ChatState {
   List<Object> get props => [data];
 }
 
+final class GetGroupListSuccess extends ChatState {
+  final List<GroupRoomModel> data;
+  const GetGroupListSuccess(this.data);
+
+  @override
+  List<Object> get props => [data];
+}
+
 final class GetAllMessageSuccess extends ChatState {
   final List<ChatModel> data;
   const GetAllMessageSuccess(this.data);
@@ -48,6 +56,14 @@ final class GetLastMessageSuccess extends ChatState {
 final class MakeChatRoomSuccess extends ChatState {
   final ChatRoomModel data;
   const MakeChatRoomSuccess(this.data);
+
+  @override
+  List<Object> get props => [data];
+}
+
+final class MakeGroupRoomSuccess extends ChatState {
+  final GroupRoomModel data;
+  const MakeGroupRoomSuccess(this.data);
 
   @override
   List<Object> get props => [data];
