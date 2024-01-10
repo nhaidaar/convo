@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/widgets/custom_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,18 +27,31 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   Column(
                     children: [
-                      Container(
-                        height: 160,
-                        width: 160,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          image: DecorationImage(
-                            image: NetworkImage(
-                                state.model.profilePicture.toString()),
-                            fit: BoxFit.cover,
-                          ),
-                          color: Colors.grey.shade300,
-                        ),
+                      CachedNetworkImage(
+                        imageUrl: state.model.profilePicture.toString(),
+                        imageBuilder: (context, imageProvider) {
+                          return Container(
+                            height: 160,
+                            width: 160,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                        placeholder: (context, url) {
+                          return Container(
+                            height: 160,
+                            width: 160,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              color: Colors.grey.shade300,
+                            ),
+                          );
+                        },
                       ),
                       Text(
                         state.model.displayName.toString(),
@@ -66,7 +81,46 @@ class ProfilePage extends StatelessWidget {
                   ),
                   ListTile(
                     onTap: () {
-                      context.read<AuthBloc>().add(SignOutEvent());
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              title: Text(
+                                'Are you sure to logout?',
+                                style: semiboldTS,
+                                textAlign: TextAlign.center,
+                              ),
+                              titlePadding: const EdgeInsets.all(30),
+                              actions: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomButton(
+                                        action: () => Navigator.pop(context),
+                                        title: 'Nevermind',
+                                        invert: true,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 16,
+                                    ),
+                                    Expanded(
+                                      child: CustomButton(
+                                        action: () => context
+                                            .read<AuthBloc>()
+                                            .add(SignOutEvent()),
+                                        title: 'Confirm',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              actionsPadding: const EdgeInsets.all(20),
+                            );
+                          });
                     },
                     leading: const Icon(Icons.logout),
                     title: Text(

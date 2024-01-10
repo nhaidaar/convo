@@ -11,9 +11,19 @@ final class ChatInitial extends ChatState {}
 
 final class ChatLoading extends ChatState {}
 
-final class GetAllChatSuccess extends ChatState {
+final class ChatSuccess extends ChatState {}
+
+final class ChatError extends ChatState {
+  final String e;
+  const ChatError(this.e);
+
+  @override
+  List<Object> get props => [e];
+}
+
+final class GetChatListSuccess extends ChatState {
   final List<ChatRoomModel> data;
-  const GetAllChatSuccess(this.data);
+  const GetChatListSuccess(this.data);
 
   @override
   List<Object> get props => [data];
@@ -27,12 +37,18 @@ final class GetAllMessageSuccess extends ChatState {
   List<Object> get props => [data];
 }
 
-final class ChatSuccess extends ChatState {}
-
-final class ChatError extends ChatState {
-  final String e;
-  const ChatError(this.e);
+final class GetLastMessageSuccess extends ChatState {
+  final ChatModel data;
+  const GetLastMessageSuccess(this.data);
 
   @override
-  List<Object> get props => [e];
+  List<Object> get props => [data];
+}
+
+final class MakeChatRoomSuccess extends ChatState {
+  final ChatRoomModel data;
+  const MakeChatRoomSuccess(this.data);
+
+  @override
+  List<Object> get props => [data];
 }

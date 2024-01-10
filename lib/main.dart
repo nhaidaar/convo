@@ -1,5 +1,6 @@
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
+import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/firebase_options.dart';
 import 'package:convo/models/user_model.dart';
 import 'package:convo/pages/auth/login_phone.dart';
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (context) => ChatBloc(),
           ),
+          BlocProvider(
+            create: (context) => UserBloc(),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -57,7 +61,7 @@ class MyApp extends StatelessWidget {
                       UserService().doesUserDataExists(userSnapshot.data!.uid),
                   builder: (context, dataSnapshot) {
                     if (dataSnapshot.hasData) {
-                      if (!dataSnapshot.data!) {
+                      if (!(dataSnapshot.data!)) {
                         return SetProfilePage(
                           model: UserModel(
                             uid: userSnapshot.data!.uid,

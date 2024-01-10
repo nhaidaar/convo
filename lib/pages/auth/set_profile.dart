@@ -56,7 +56,7 @@ class _SetProfilePageState extends State<SetProfilePage> {
       create: (context) => UserBloc(),
       child: BlocListener<UserBloc, UserState>(
         listener: (context, state) {
-          if (state is UserStorageSuccess) {
+          if (state is UserStoreFileSuccess) {
             final finalModel = widget.model.copyWith(
               displayName: displayNameController.text,
               username: usernameController.text,
@@ -181,7 +181,10 @@ class _SetProfilePageState extends State<SetProfilePage> {
                     action: () {
                       if (!areFieldsEmpty) {
                         context.read<UserBloc>().add(
-                              UploadToStorageEvent(widget.model.uid!, image!),
+                              UploadToStorageEvent(
+                                uid: widget.model.uid!,
+                                file: image!,
+                              ),
                             );
                       }
                     },

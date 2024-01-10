@@ -10,7 +10,10 @@ abstract class UserEvent extends Equatable {
 class UploadToStorageEvent extends UserEvent {
   final String uid;
   final File file;
-  const UploadToStorageEvent(this.uid, this.file);
+  const UploadToStorageEvent({
+    required this.uid,
+    required this.file,
+  });
 
   @override
   List<Object> get props => [uid, file];
@@ -30,4 +33,16 @@ class GetUserDataEvent extends UserEvent {
 
   @override
   List<Object> get props => [uid];
+}
+
+class SearchUserEvent extends UserEvent {
+  final String search;
+  final String exceptUid;
+  const SearchUserEvent({
+    required this.search,
+    required this.exceptUid,
+  });
+
+  @override
+  List<Object> get props => [search, exceptUid];
 }

@@ -1,5 +1,6 @@
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomFormField extends StatelessWidget {
   final FocusNode? focusNode;
@@ -50,6 +51,56 @@ class CustomFormField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomRoundField extends StatelessWidget {
+  final Function(String?)? onFieldSubmitted;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final String? prefixIconUrl;
+  final String? hintText;
+  final Color? fillColor;
+  final Color borderColor;
+  const CustomRoundField({
+    super.key,
+    this.controller,
+    this.focusNode,
+    this.hintText,
+    this.fillColor,
+    this.borderColor = Colors.transparent,
+    this.prefixIconUrl,
+    this.onFieldSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      onFieldSubmitted: onFieldSubmitted,
+      controller: controller,
+      focusNode: focusNode,
+      decoration: InputDecoration(
+        prefixIcon: prefixIconUrl != null
+            ? Image.asset(
+                prefixIconUrl.toString(),
+                scale: 2,
+                color: borderColor,
+              )
+            : null,
+        fillColor: fillColor,
+        filled: fillColor != null,
+        hintText: hintText,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(100),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(100),
+          borderSide: BorderSide(color: borderColor),
         ),
       ),
     );

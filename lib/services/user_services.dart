@@ -29,7 +29,10 @@ class UserService {
     }
   }
 
-  Future<String> uploadImageToStorage(String uid, File image) async {
+  Future<String> uploadImageToStorage({
+    required String uid,
+    required File image,
+  }) async {
     final storageRef =
         FirebaseStorage.instance.ref().child('user/profile_picture/$uid.jpg');
 
@@ -49,6 +52,28 @@ class UserService {
 
     try {
       await userData.doc(user.uid).set(user.toMap());
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<UserModel>> searchUser(
+      {required String search, required String exceptUid}) async {
+    final CollectionReference userData = _firestore.collection('users');
+    try {
+      QuerySnapshot userSnapshot = await userData
+          .where('username', isEqualTo: search)
+          .where('uid', isNotEqualTo: exceptUid)
+          .get();
+
+      List<UserModel> users = [];
+
+      if (userSnapshot.docs.isNotEmpty) {
+        users = userSnapshot.docs.map((doc) {
+          return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        }).toList();
+      }
+      return users;
     } catch (e) {
       rethrow;
     }

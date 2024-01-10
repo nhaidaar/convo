@@ -43,7 +43,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         listener: (context, state) {
           if (state is AuthForgotPasswordSent) {
             showSnackbar(context,
-                'We sent confirmation email to ${emailController.text}');
+                'We\'ve sent confirmation email to ${emailController.text}');
           }
           if (state is AuthError) {
             showSnackbar(context, state.e);

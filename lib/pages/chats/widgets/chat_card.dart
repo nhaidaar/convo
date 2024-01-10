@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/pages/chats/chat_room.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatCard extends StatefulWidget {
   final ChatRoomModel model;
@@ -18,87 +21,111 @@ class _ChatCardState extends State<ChatCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatRoom(
-              model: widget.model,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        height: 90,
-        padding: const EdgeInsets.all(20),
-        margin: const EdgeInsets.only(bottom: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.grey[100],
+    return BlocProvider(
+      create: (context) => ChatBloc()
+        ..add(
+          GetLastMessageEvent(widget.model.roomId!),
         ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.transparent,
-              backgroundImage: const AssetImage('assets/images/male1.jpg'),
-              foregroundImage: NetworkImage(
-                widget.model.interlocutor!.profilePicture.toString(),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatRoom(
+                model: widget.model,
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+          );
+        },
+        child: BlocBuilder<ChatBloc, ChatState>(
+          builder: (context, state) {
+            return Container(
+              height: 90,
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.grey[100],
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    widget.model.interlocutor!.displayName.toString(),
-                    style: semiboldTS.copyWith(fontSize: 18),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  CachedNetworkImage(
+                    imageUrl:
+                        widget.model.interlocutor!.profilePicture.toString(),
+                    imageBuilder: (context, imageProvider) {
+                      return CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.transparent,
+                        foregroundImage: imageProvider,
+                      );
+                    },
+                    placeholder: (context, url) {
+                      return const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: AssetImage(
+                          'assets/images/profile.jpg',
+                        ),
+                      );
+                    },
                   ),
-                  Text(
-                    (widget.model.lastMessage!.sendBy == user!.uid
-                            ? 'Me: '
-                            : '') +
-                        widget.model.lastMessage!.message,
-                    style: mediumTS.copyWith(
-                      fontSize: 15,
-                      color: Colors.grey,
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(
+                          widget.model.interlocutor!.displayName.toString(),
+                          style: semiboldTS.copyWith(fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        (state is GetLastMessageSuccess)
+                            ? Text(
+                                (state.data.sendBy == user!.uid ? 'Me: ' : '') +
+                                    state.data.message,
+                                style: mediumTS.copyWith(
+                                  fontSize: 15,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : const Text(''),
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  (state is GetLastMessageSuccess)
+                      ? (formatDate(state.data.sendAt) != ''
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  formatDate(state.data.sendAt),
+                                  style: mediumTS.copyWith(color: Colors.grey),
+                                ),
+                                Text(
+                                  formatTime(state.data.sendAt),
+                                  style: mediumTS.copyWith(color: Colors.grey),
+                                ),
+                              ],
+                            )
+                          : Text(
+                              formatTime(state.data.sendAt),
+                              style: mediumTS.copyWith(color: Colors.grey),
+                            ))
+                      : const Text(''),
                 ],
               ),
-            ),
-            const SizedBox(
-              width: 20,
-            ),
-            formatDate(widget.model.lastMessage!.sendAt) != ''
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        formatDate(widget.model.lastMessage!.sendAt),
-                        style: mediumTS.copyWith(color: Colors.grey),
-                      ),
-                      Text(
-                        formatTime(widget.model.lastMessage!.sendAt),
-                        style: mediumTS.copyWith(color: Colors.grey),
-                      ),
-                    ],
-                  )
-                : Text(
-                    formatTime(widget.model.lastMessage!.sendAt),
-                    style: mediumTS.copyWith(color: Colors.grey),
-                  ),
-          ],
+            );
+          },
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:another_flushbar/flushbar.dart';
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +62,20 @@ String formatDate(DateTime dateTime) {
   } else if (dateTime.weekday == now.weekday) {
     return DateFormat('EEEE').format(dateTime); // Display the day of the week
   } else {
-    return DateFormat('dd.MM').format(dateTime); // Display the date
+    return DateFormat('dd MMM').format(dateTime); // Display the date
   }
+}
+
+String generateAutoId() {
+  const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const autoIdLength = 20; // Length of auto-generated ID
+  final random = Random();
+  final buffer = StringBuffer();
+
+  for (var i = 0; i < autoIdLength; i++) {
+    buffer.write(chars[random.nextInt(chars.length)]);
+  }
+
+  return buffer.toString();
 }

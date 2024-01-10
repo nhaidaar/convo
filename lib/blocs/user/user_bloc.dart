@@ -13,9 +13,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UploadToStorageEvent>((event, emit) async {
       emit(UserLoading());
       try {
-        final url =
-            await UserService().uploadImageToStorage(event.uid, event.file);
-        emit(UserStorageSuccess(url));
+        final url = await UserService().uploadImageToStorage(
+          uid: event.uid,
+          image: event.file,
+        );
+        emit(UserStoreFileSuccess(url));
       } catch (e) {
         emit(UserError(e.toString()));
       }
@@ -36,6 +38,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         if (model != null) {
           emit(UserGetDataSuccess(model));
         }
+      } catch (e) {
+        emit(UserError(e.toString()));
+      }
+    });
+    on<SearchUserEvent>((event, emit) async {
+      emit(UserLoading());
+      try {
+        final userList = await UserService().searchUser(
+          search: event.search,
+          exceptUid: event.exceptUid,
+        );
+        emit(UserSearchSuccess(userList));
       } catch (e) {
         emit(UserError(e.toString()));
       }

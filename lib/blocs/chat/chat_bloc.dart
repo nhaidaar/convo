@@ -8,31 +8,75 @@ part 'chat_event.dart';
 part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
+  final ChatService _chatService = ChatService();
+
   ChatBloc() : super(ChatInitial()) {
-    on<GetAllPersonalChatEvent>((event, emit) async {
-      emit(ChatLoading());
-      try {
-        final personalChats =
-            await ChatService().getAllPersonalChats(event.uid);
-        emit(GetAllChatSuccess(personalChats));
-      } catch (e) {
-        emit(ChatError(e.toString()));
-      }
-    });
-    on<GetAllMessageEvent>((event, emit) async {
-      emit(ChatLoading());
-      try {
-        final messages = await ChatService().getAllMessages(event.roomId);
-        emit(GetAllMessageSuccess(messages));
-      } catch (e) {
-        emit(ChatError(e.toString()));
-      }
-    });
+    on<GetChatListEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamChatList(event.uid),
+          onData: (data) => emit(
+            GetChatListSuccess(data),
+          ),
+          onError: (error, stackTrace) => emit(
+            ChatError(
+              error.toString(),
+            ),
+          ),
+        );
+      },
+    );
+    on<GetAllMessageEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamChat(event.roomId),
+          onData: (data) => emit(
+            GetAllMessageSuccess(data),
+          ),
+          onError: (error, stackTrace) => emit(
+            ChatError(
+              error.toString(),
+            ),
+          ),
+        );
+      },
+    );
+    on<GetLastMessageEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamLastMessage(event.roomId),
+          onData: (data) => emit(
+            GetLastMessageSuccess(data),
+          ),
+          onError: (error, stackTrace) => emit(
+            ChatError(
+              error.toString(),
+            ),
+          ),
+        );
+      },
+    );
+
     on<SendMessageEvent>((event, emit) async {
       emit(ChatLoading());
       try {
-        await ChatService().sendMessage(event.roomId, event.message);
+        await _chatService.sendMessage(
+            roomId: event.roomId, model: event.message);
         emit(ChatSuccess());
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<MakeChatRoomEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        final data = await _chatService.makeChatRoom(
+          myUid: event.myUid,
+          interlocutorUid: event.interlocutorUid,
+          // chat: event.chat,
+        );
+        emit(MakeChatRoomSuccess(data));
       } catch (e) {
         emit(ChatError(e.toString()));
       }

@@ -1,5 +1,6 @@
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/pages/chats/search.dart';
 import 'package:convo/pages/chats/widgets/chat_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +52,21 @@ class _ChatPageState extends State<ChatPage> {
         body: TabBarView(
           children: [
             BlocProvider(
-              create: (context) => ChatBloc()
-                ..add(
-                  GetAllPersonalChatEvent(user!.uid),
-                ),
+              create: (context) => ChatBloc()..add(GetChatListEvent(user!.uid)),
               child: BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
-                  if (state is GetAllChatSuccess) {
+                  if (state is GetChatListSuccess) {
+                    if (state.data.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'Welcome aboard!\nChat list is empty. Why not say hello?',
+                          style: mediumTS,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
                     return ListView(
+                      physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       children: state.data.map((chatRoom) {
                         return ChatCard(model: chatRoom);
@@ -73,37 +81,24 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
             ),
-            ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: const [
-                Center(child: Text('Coming Soon!')),
-                // ChatCard(
-                //   title: 'Nola Safyan',
-                //   lastMessage: 'Dimanaaa',
-                //   lastMessageTime: '19.07',
-                //   profilePictureUrl: 'assets/images/female1.jpg',
-                //   messageUnread: 8,
-                // ),
-                // ChatCard(
-                //   title: 'Rayyan',
-                //   lastMessage: 'Fal...',
-                //   lastMessageTime: '19.03',
-                //   profilePictureUrl: 'assets/images/male1.jpg',
-                //   messageUnread: 1,
-                // ),
-                // ChatCard(
-                //   title: 'Irsyad',
-                //   lastMessage: 'Gas ae',
-                //   lastMessageTime: '19.01',
-                //   profilePictureUrl: 'assets/images/male1.jpg',
-                //   messageUnread: 0,
-                // ),
-              ],
+            Center(
+              child: Text(
+                'Coming Soon!',
+                style: mediumTS,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SearchUser(),
+              ),
+            );
+          },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/chat_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/pages/chats/widgets/message_card.dart';
+import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,13 +42,25 @@ class _ChatRoomState extends State<ChatRoom> {
             height: 50,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: const AssetImage('assets/images/male1.jpg'),
-                  foregroundImage: NetworkImage(
-                    widget.model.interlocutor!.profilePicture.toString(),
-                  ),
+                CachedNetworkImage(
+                  imageUrl:
+                      widget.model.interlocutor!.profilePicture.toString(),
+                  imageBuilder: (context, imageProvider) {
+                    return CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.transparent,
+                      foregroundImage: imageProvider,
+                    );
+                  },
+                  placeholder: (context, url) {
+                    return const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: AssetImage(
+                        'assets/images/profile.jpg',
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(
                   width: 16,
@@ -94,106 +108,80 @@ class _ChatRoomState extends State<ChatRoom> {
             ..add(
               GetAllMessageEvent(widget.model.roomId!),
             ),
-          child: BlocConsumer<ChatBloc, ChatState>(
-            listener: (context, state) {
-              if (state is ChatSuccess) {
-                context.read<ChatBloc>().add(
-                      GetAllMessageEvent(widget.model.roomId!),
+          child: Column(
+            children: [
+              Expanded(
+                child: BlocBuilder<ChatBloc, ChatState>(
+                  builder: (context, state) {
+                    if (state is GetAllMessageSuccess) {
+                      return SingleChildScrollView(
+                        reverse: true,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: state.data.map(
+                              (chat) {
+                                if (chat.sendBy != user!.uid) {
+                                  return MessageIn(model: chat);
+                                }
+                                return MessageOut(model: chat);
+                              },
+                            ).toList(),
+                          ),
+                        ),
+                      );
+                    }
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: blue,
+                      ),
                     );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  Expanded(
-                    child: BlocBuilder<ChatBloc, ChatState>(
-                      builder: (context, state) {
-                        if (state is GetAllMessageSuccess) {
-                          return SingleChildScrollView(
-                            reverse: true,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                children: state.data.map(
-                                  (chat) {
-                                    if (chat.sendBy != user!.uid) {
-                                      return MessageIn(model: chat);
-                                    }
-                                    return MessageOut(model: chat);
-                                  },
-                                ).toList(),
+                  },
+                ),
+              ),
+              BottomAppBar(
+                elevation: 0,
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomRoundField(
+                        controller: messageController,
+                        focusNode: messageFocus,
+                        fillColor: Colors.grey[100],
+                        hintText: 'Type something...',
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        context.read<ChatBloc>().add(
+                              SendMessageEvent(
+                                roomId: widget.model.roomId.toString(),
+                                message: ChatModel(
+                                  message: messageController.text,
+                                  sendAt: DateTime.now(),
+                                  sendBy: user!.uid,
+                                ),
                               ),
-                            ),
-                          );
-                        }
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: blue,
-                          ),
-                        );
+                            );
+                        messageFocus.unfocus();
+                        messageController.clear();
                       },
+                      child: Image.asset(
+                        'assets/icons/send.png',
+                        scale: 2,
+                      ),
                     ),
-                  ),
-                  BottomAppBar(
-                    elevation: 0,
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: messageController,
-                            focusNode: messageFocus,
-                            decoration: InputDecoration(
-                              fillColor: Colors.grey[100],
-                              filled: true,
-                              hintText: 'Type something...',
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(100),
-                                borderSide:
-                                    const BorderSide(color: Colors.transparent),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(100),
-                                borderSide:
-                                    const BorderSide(color: Colors.transparent),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 16,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            context.read<ChatBloc>().add(
-                                  SendMessageEvent(
-                                    widget.model.roomId.toString(),
-                                    ChatModel(
-                                      message: messageController.text,
-                                      sendAt: DateTime.now(),
-                                      sendBy: user!.uid,
-                                    ),
-                                  ),
-                                );
-                            messageFocus.unfocus();
-                            messageController.clear();
-                          },
-                          child: Image.asset(
-                            'assets/icons/send.png',
-                            scale: 2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                ),
+              ),
+            ],
           ),
+          // bottomNavigationBar:
         ),
-        // bottomNavigationBar:
       ),
     );
   }

@@ -21,9 +21,9 @@ final class UserError extends UserState {
   List<Object> get props => [e];
 }
 
-final class UserStorageSuccess extends UserState {
+final class UserStoreFileSuccess extends UserState {
   final String url;
-  const UserStorageSuccess(this.url);
+  const UserStoreFileSuccess(this.url);
 
   @override
   List<Object> get props => [url];
@@ -35,4 +35,12 @@ final class UserGetDataSuccess extends UserState {
 
   @override
   List<Object> get props => [model];
+}
+
+final class UserSearchSuccess extends UserState {
+  final List<UserModel> userList;
+  const UserSearchSuccess(this.userList);
+
+  @override
+  List<Object> get props => [userList];
 }
