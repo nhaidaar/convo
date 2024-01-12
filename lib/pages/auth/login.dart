@@ -1,8 +1,8 @@
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/pages/auth/login_email.dart';
-import 'package:convo/pages/auth/login_otp.dart';
+import 'package:convo/pages/auth/login_withemail.dart';
+import 'package:convo/pages/auth/login_insertotp.dart';
 import 'package:convo/pages/auth/widgets/login_circle.dart';
 import 'package:convo/pages/home.dart';
 import 'package:convo/widgets/custom_button.dart';
@@ -56,8 +56,7 @@ class _LoginPageState extends State<LoginPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthOtpSent) {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               PageTransition(
                 child: LoginOtp(
                   phoneNumber: countryCode + phoneController.text,
@@ -68,8 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             );
           }
           if (state is AuthSuccess) {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               PageTransition(
                 child: const Home(),
                 type: PageTransitionType.rightToLeft,
@@ -187,8 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                       LoginCircle(
                         iconUrl: 'assets/icons/login_email.png',
                         action: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context).push(
                             PageTransition(
                               child: const LoginEmailPage(),
                               type: PageTransitionType.rightToLeft,

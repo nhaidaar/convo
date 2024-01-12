@@ -6,7 +6,13 @@ import 'package:flutter/material.dart';
 class SearchCard extends StatelessWidget {
   final UserModel model;
   final VoidCallback? action;
-  const SearchCard({super.key, required this.model, this.action});
+  final bool showIcon;
+  const SearchCard({
+    super.key,
+    required this.model,
+    this.action,
+    this.showIcon = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +77,12 @@ class SearchCard extends StatelessWidget {
             const SizedBox(
               width: 20,
             ),
-            Image.asset(
-              'assets/icons/send.png',
-              scale: 2,
-            ),
+            showIcon
+                ? Image.asset(
+                    'assets/icons/send.png',
+                    scale: 2,
+                  )
+                : Container(),
           ],
         ),
       ),

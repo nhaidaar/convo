@@ -2,25 +2,31 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:convo/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UserService {
-  final _firestore = FirebaseFirestore.instance;
+  final _firestore = FirebaseFirestore.instance.collection('users');
+  final user = FirebaseAuth.instance.currentUser;
 
-  Future<bool> doesUserDataExists(String uid) async {
+  Future<bool> isUserExists(String uid) async {
     try {
-      final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
-      final userDocSnapshot = await userDoc.get();
+      final userDocSnapshot = await _firestore.doc(uid).get();
       return userDocSnapshot.exists;
     } catch (e) {
       return false;
     }
   }
 
+  Stream<UserModel> streamUserData(String uid) {
+    return _firestore.doc(uid).snapshots().map((user) {
+      return UserModel.fromMap(user.data()!);
+    });
+  }
+
   Future<UserModel?> getUserData(String uid) async {
     try {
-      DocumentSnapshot userData =
-          await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot userData = await _firestore.doc(uid).get();
       UserModel userModel =
           UserModel.fromMap(userData.data() as Map<String, dynamic>);
       return userModel;
@@ -33,8 +39,9 @@ class UserService {
     required String uid,
     required File image,
   }) async {
-    final storageRef =
-        FirebaseStorage.instance.ref().child('user/profile_picture/$uid.jpg');
+    final storageRef = FirebaseStorage.instance.ref().child(
+          'user/profile_picture/$uid.jpg',
+        );
 
     // Upload the file to Firebase Storage
     final uploadTask = storageRef.putFile(image);
@@ -48,20 +55,19 @@ class UserService {
   }
 
   Future<void> postUserData(UserModel user) async {
-    final CollectionReference userData = _firestore.collection('users');
-
     try {
-      await userData.doc(user.uid).set(user.toMap());
+      await _firestore.doc(user.uid).set(user.toMap());
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<List<UserModel>> searchUser(
-      {required String search, required String exceptUid}) async {
-    final CollectionReference userData = _firestore.collection('users');
+  Future<List<UserModel>> searchUser({
+    required String search,
+    required String exceptUid,
+  }) async {
     try {
-      QuerySnapshot userSnapshot = await userData
+      QuerySnapshot userSnapshot = await _firestore
           .where('username', isEqualTo: search)
           .where('uid', isNotEqualTo: exceptUid)
           .get();
@@ -77,5 +83,12 @@ class UserService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> updateOnlineStatus(bool isOnline) async {
+    await _firestore.doc(user!.uid).update({
+      'isOnline': isOnline,
+      'lastActive': DateTime.now().millisecondsSinceEpoch.toString(),
+    });
   }
 }

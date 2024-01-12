@@ -7,16 +7,20 @@ abstract class UserEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class UploadToStorageEvent extends UserEvent {
+class StreamUserDataEvent extends UserEvent {
   final String uid;
-  final File file;
-  const UploadToStorageEvent({
-    required this.uid,
-    required this.file,
-  });
+  const StreamUserDataEvent(this.uid);
 
   @override
-  List<Object> get props => [uid, file];
+  List<Object> get props => [uid];
+}
+
+class GetUserDataEvent extends UserEvent {
+  final String uid;
+  const GetUserDataEvent(this.uid);
+
+  @override
+  List<Object> get props => [uid];
 }
 
 class PostUserDataEvent extends UserEvent {
@@ -27,12 +31,16 @@ class PostUserDataEvent extends UserEvent {
   List<Object> get props => [user];
 }
 
-class GetUserDataEvent extends UserEvent {
+class UploadToStorageEvent extends UserEvent {
   final String uid;
-  const GetUserDataEvent(this.uid);
+  final File file;
+  const UploadToStorageEvent({
+    required this.uid,
+    required this.file,
+  });
 
   @override
-  List<Object> get props => [uid];
+  List<Object> get props => [uid, file];
 }
 
 class SearchUserEvent extends UserEvent {

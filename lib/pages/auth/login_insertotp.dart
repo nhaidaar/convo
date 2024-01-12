@@ -55,11 +55,9 @@ class _LoginOtpState extends State<LoginOtp> {
         listener: (context, state) async {
           if (state is AuthSuccess) {
             final user = FirebaseAuth.instance.currentUser;
-            final userDataExists =
-                await UserService().doesUserDataExists(user!.uid);
-            if (userDataExists) {
-              Navigator.pushAndRemoveUntil(
-                context,
+            final userExists = await UserService().isUserExists(user!.uid);
+            if (userExists) {
+              Navigator.of(context).pushAndRemoveUntil(
                 PageTransition(
                   child: const Home(),
                   type: PageTransitionType.fade,
@@ -67,8 +65,7 @@ class _LoginOtpState extends State<LoginOtp> {
                 (route) => false,
               );
             } else {
-              Navigator.pushAndRemoveUntil(
-                context,
+              Navigator.of(context).pushAndRemoveUntil(
                 PageTransition(
                   child: SetProfilePage(
                     model: UserModel(

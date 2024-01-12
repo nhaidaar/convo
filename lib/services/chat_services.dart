@@ -1,25 +1,24 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:convo/models/chat_model.dart';
+import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
-import 'package:convo/models/user_model.dart';
-import 'package:convo/services/user_services.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ChatService {
   final _firestore = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
 
   Future<ChatRoomModel> makeChatRoom({
     required String myUid,
-    required String interlocutorUid,
+    required String friendUid,
   }) async {
     String roomId = '';
 
     try {
       await _firestore.collection('chats').add({
-        'members': [
-          myUid,
-          interlocutorUid,
-        ],
+        'members': [myUid, friendUid],
       }).then((value) {
         roomId = value.id;
       });
@@ -28,56 +27,73 @@ class ChatService {
         'roomId': roomId,
       }, SetOptions(merge: true));
 
-      UserModel? interlocutor =
-          await UserService().getUserData(interlocutorUid);
-
       return ChatRoomModel(
         roomId: roomId,
-        members: [
-          myUid,
-          interlocutorUid,
-        ],
-        interlocutor: interlocutor,
+        members: [friendUid],
       );
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<GroupRoomModel> makeGroupRoom(List<UserModel> members) async {
+  Future<GroupRoomModel> makeGroupRoom(
+      GroupRoomModel groupRoom, File image) async {
     String roomId = '';
-    List<String> membersUid = [];
-
-    for (UserModel user in members) {
-      if (user.uid != null) {
-        membersUid.add(user.uid!);
-      }
-    }
 
     try {
-      await _firestore.collection('chats').add({
-        'members': membersUid,
-      }).then((value) {
+      await _firestore
+          .collection('chats')
+          .add(groupRoom.toMap())
+          .then((value) async {
+        // Get the roomId
         roomId = value.id;
+
+        // Set the roomId
+        await _firestore.collection('chats').doc(roomId).set({
+          'roomId': value.id,
+        }, SetOptions(merge: true));
       });
 
+      final groupPicture =
+          await uploadImageToStorage(name: roomId, image: image);
+
+      groupRoom.members!.remove(groupRoom.members![0]);
+
       await _firestore.collection('chats').doc(roomId).set({
-        'roomId': roomId,
+        'groupPicture': groupPicture,
       }, SetOptions(merge: true));
 
       return GroupRoomModel(
         roomId: roomId,
-        members: membersUid,
-        interlocutors: members,
+        members: groupRoom.members,
+        title: groupRoom.title,
+        groupPicture: groupPicture,
       );
     } catch (e) {
       rethrow;
     }
   }
 
+  Future<String> uploadImageToStorage({
+    required String name,
+    required File image,
+  }) async {
+    final storageRef = _storage.ref().child('group/profile_picture/$name.jpg');
+
+    // Upload the file to Firebase Storage
+    final uploadTask = storageRef.putFile(image);
+
+    // Get the download URL
+    final snapshot = await uploadTask;
+    final downloadURL = await snapshot.ref.getDownloadURL();
+
+    // Return the download URL
+    return downloadURL;
+  }
+
   Future<void> sendMessage({
     required String roomId,
-    required ChatModel model,
+    required MessageModel model,
   }) async {
     try {
       await _firestore
@@ -92,31 +108,27 @@ class ChatService {
 
   Future<ChatRoomModel?> isChatRoomExists({
     required String myUid,
-    required String interlocutorUid,
+    required String friendUid,
   }) async {
     try {
       QuerySnapshot myChatList = await _firestore
           .collection('chats')
-          .where('members', arrayContainsAny: [myUid, interlocutorUid])
-          .limit(1)
-          .get();
+          .where('members', arrayContainsAny: [myUid, friendUid]).get();
 
       for (QueryDocumentSnapshot doc in myChatList.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        List<String> members = List<String>.from(data['members']);
-        UserModel? interlocutor =
-            await UserService().getUserData(interlocutorUid);
+        final data = ChatRoomModel.fromMap(doc.data() as Map<String, dynamic>);
 
-        if (members.length == 2 &&
-            members.contains(myUid) &&
-            members.contains(interlocutorUid)) {
+        if (data.members!.length == 2 &&
+            data.members!.contains(myUid) &&
+            data.members!.contains(friendUid)) {
+          data.members!.remove(myUid);
           return ChatRoomModel(
-            roomId: data['roomId'],
-            members: members,
-            interlocutor: interlocutor,
+            roomId: data.roomId,
+            members: data.members,
           );
         }
       }
+
       return null;
     } catch (e) {
       rethrow;
@@ -132,18 +144,15 @@ class ChatService {
       List<ChatRoomModel> chatRooms = [];
 
       for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        final data = ChatRoomModel.fromMap(doc.data() as Map<String, dynamic>);
 
-        if (data['members'].length == 2) {
-          List<String> members = List<String>.from(data['members']);
+        if (data.members!.length == 2) {
+          List<String> members = List<String>.from(data.members!);
           members.remove(uid);
 
-          UserModel? interlocutor = await UserService().getUserData(members[0]);
-
           ChatRoomModel chatRoom = ChatRoomModel(
-            roomId: data['roomId'],
+            roomId: data.roomId,
             members: members,
-            interlocutor: interlocutor,
           );
 
           chatRooms.add(chatRoom);
@@ -163,25 +172,17 @@ class ChatService {
       List<GroupRoomModel> groupRooms = [];
 
       for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        final data = GroupRoomModel.fromMap(doc.data() as Map<String, dynamic>);
 
-        if (data['members'].length > 2) {
-          List<String> members = List<String>.from(data['members']);
+        if (data.members!.length > 2) {
+          List<String> members = List<String>.from(data.members!);
           members.remove(uid);
 
-          List<UserModel> interlocutors = [];
-          for (String membersUid in members) {
-            UserModel? interlocutor =
-                await UserService().getUserData(membersUid);
-            if (interlocutor != null) {
-              interlocutors.add(interlocutor);
-            }
-          }
-
           GroupRoomModel groupRoom = GroupRoomModel(
-            roomId: data['roomId'],
+            roomId: data.roomId,
             members: members,
-            interlocutors: interlocutors,
+            title: data.title,
+            groupPicture: data.groupPicture,
           );
 
           groupRooms.add(groupRoom);
@@ -192,7 +193,7 @@ class ChatService {
     });
   }
 
-  Stream<List<ChatModel>> streamChat(String roomId) {
+  Stream<List<MessageModel>> streamChat(String roomId) {
     return FirebaseFirestore.instance
         .collection('chats')
         .doc(roomId)
@@ -202,13 +203,13 @@ class ChatService {
         .map((querySnapshot) {
       return querySnapshot.docs.map(
         (doc) {
-          return ChatModel.fromMap(doc.data());
+          return MessageModel.fromMap(doc.data());
         },
       ).toList();
     });
   }
 
-  Stream<ChatModel> streamLastMessage(String roomId) {
+  Stream<MessageModel> streamLastMessage(String roomId) {
     return _firestore
         .collection('chats')
         .doc(roomId)
@@ -217,7 +218,7 @@ class ChatService {
         .snapshots()
         .map((snapshot) {
       final lastMessageDoc = snapshot.docs.last.data();
-      return ChatModel.fromMap(lastMessageDoc);
+      return MessageModel.fromMap(lastMessageDoc);
     });
   }
 }

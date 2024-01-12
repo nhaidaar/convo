@@ -3,7 +3,7 @@ import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/firebase_options.dart';
 import 'package:convo/models/user_model.dart';
-import 'package:convo/pages/auth/login_phone.dart';
+import 'package:convo/pages/auth/login.dart';
 import 'package:convo/pages/auth/set_profile.dart';
 import 'package:convo/pages/home.dart';
 import 'package:convo/repositories/auth_repository.dart';
@@ -48,6 +48,7 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp(
+          title: 'Convo',
           theme: ThemeData(
             fontFamily: 'SFProDisplay',
             scaffoldBackgroundColor: Colors.white,
@@ -67,8 +68,7 @@ class MyApp extends StatelessWidget {
             builder: (context, userSnapshot) {
               if (userSnapshot.hasData) {
                 return FutureBuilder(
-                  future:
-                      UserService().doesUserDataExists(userSnapshot.data!.uid),
+                  future: UserService().isUserExists(userSnapshot.data!.uid),
                   builder: (context, dataSnapshot) {
                     if (dataSnapshot.hasData) {
                       if (!(dataSnapshot.data!)) {

@@ -1,7 +1,8 @@
-import 'package:convo/models/chat_model.dart';
+import 'dart:io';
+
+import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
-import 'package:convo/models/user_model.dart';
 import 'package:convo/services/chat_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -17,14 +18,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (event, emit) async {
         await emit.onEach(
           _chatService.streamChatList(event.uid),
-          onData: (data) => emit(
-            GetChatListSuccess(data),
-          ),
-          onError: (error, stackTrace) => emit(
-            ChatError(
-              error.toString(),
-            ),
-          ),
+          onData: (data) => emit(GetChatListSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
       },
     );
@@ -32,14 +27,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (event, emit) async {
         await emit.onEach(
           _chatService.streamGroupList(event.uid),
-          onData: (data) => emit(
-            GetGroupListSuccess(data),
-          ),
-          onError: (error, stackTrace) => emit(
-            ChatError(
-              error.toString(),
-            ),
-          ),
+          onData: (data) => emit(GetGroupListSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
       },
     );
@@ -47,14 +36,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (event, emit) async {
         await emit.onEach(
           _chatService.streamChat(event.roomId),
-          onData: (data) => emit(
-            GetAllMessageSuccess(data),
-          ),
-          onError: (error, stackTrace) => emit(
-            ChatError(
-              error.toString(),
-            ),
-          ),
+          onData: (data) => emit(GetAllMessageSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
       },
     );
@@ -62,14 +45,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       (event, emit) async {
         await emit.onEach(
           _chatService.streamLastMessage(event.roomId),
-          onData: (data) => emit(
-            GetLastMessageSuccess(data),
-          ),
-          onError: (error, stackTrace) => emit(
-            ChatError(
-              error.toString(),
-            ),
-          ),
+          onData: (data) => emit(GetLastMessageSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
       },
     );
@@ -90,7 +67,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       try {
         final data = await _chatService.makeChatRoom(
           myUid: event.myUid,
-          interlocutorUid: event.interlocutorUid,
+          friendUid: event.friendUid,
         );
         emit(MakeChatRoomSuccess(data));
       } catch (e) {
@@ -101,7 +78,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<MakeGroupRoomEvent>((event, emit) async {
       emit(ChatLoading());
       try {
-        final data = await _chatService.makeGroupRoom(event.members);
+        final data =
+            await _chatService.makeGroupRoom(event.groupRoom, event.image);
         emit(MakeGroupRoomSuccess(data));
       } catch (e) {
         emit(ChatError(e.toString()));

@@ -38,7 +38,7 @@ final class GetGroupListSuccess extends ChatState {
 }
 
 final class GetAllMessageSuccess extends ChatState {
-  final List<ChatModel> data;
+  final List<MessageModel> data;
   const GetAllMessageSuccess(this.data);
 
   @override
@@ -46,7 +46,7 @@ final class GetAllMessageSuccess extends ChatState {
 }
 
 final class GetLastMessageSuccess extends ChatState {
-  final ChatModel data;
+  final MessageModel data;
   const GetLastMessageSuccess(this.data);
 
   @override

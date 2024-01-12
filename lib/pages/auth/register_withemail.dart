@@ -1,24 +1,25 @@
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/pages/auth/forgot_password.dart';
-import 'package:convo/pages/auth/register_email.dart';
-import 'package:convo/pages/home.dart';
+import 'package:convo/models/user_model.dart';
+import 'package:convo/pages/auth/login_withemail.dart';
+import 'package:convo/pages/auth/set_profile.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:convo/widgets/custom_textfield.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 
-class LoginEmailPage extends StatefulWidget {
-  const LoginEmailPage({super.key});
+class RegisterEmailPage extends StatefulWidget {
+  const RegisterEmailPage({super.key});
 
   @override
-  State<LoginEmailPage> createState() => _LoginEmailPageState();
+  State<RegisterEmailPage> createState() => _RegisterEmailPageState();
 }
 
-class _LoginEmailPageState extends State<LoginEmailPage> {
+class _RegisterEmailPageState extends State<RegisterEmailPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final emailFocus = FocusNode();
@@ -57,10 +58,14 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            Navigator.pushAndRemoveUntil(
-              context,
+            Navigator.of(context).pushAndRemoveUntil(
               PageTransition(
-                child: const Home(),
+                child: SetProfilePage(
+                  model: UserModel(
+                    uid: FirebaseAuth.instance.currentUser!.uid,
+                    credentials: emailController.text,
+                  ),
+                ),
                 type: PageTransitionType.fade,
               ),
               (route) => false,
@@ -84,7 +89,7 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                  'Login with Email',
+                  'Register with Email',
                   style: semiboldTS,
                 ),
                 centerTitle: true,
@@ -132,34 +137,15 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                     },
                   ),
                   const SizedBox(
-                    height: 20,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageTransition(
-                          child: const ForgotPasswordPage(),
-                          type: PageTransitionType.rightToLeft,
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: semiboldTS.copyWith(color: blue),
-                      textAlign: TextAlign.end,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
+                    height: 40,
                   ),
                   CustomButton(
-                    title: 'Continue',
+                    title: 'Register',
                     disabled: areFieldsEmpty,
                     action: () {
                       if (!areFieldsEmpty) {
                         context.read<AuthBloc>().add(
-                              EmailSignInEvent(
+                              EmailSignUpEvent(
                                 emailController.text,
                                 passwordController.text,
                               ),
@@ -175,18 +161,17 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                   padding: const EdgeInsets.all(30),
                   child: Text.rich(
                     TextSpan(
-                      text: 'Don\'t have an account? ',
+                      text: 'Already have an account? ',
                       style: mediumTS,
                       children: [
                         TextSpan(
-                            text: 'Sign Up',
+                            text: 'Sign In',
                             style: semiboldTS.copyWith(color: blue),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                Navigator.push(
-                                  context,
+                                Navigator.of(context).push(
                                   PageTransition(
-                                    child: const RegisterEmailPage(),
+                                    child: const LoginEmailPage(),
                                     type: PageTransitionType.rightToLeft,
                                   ),
                                 );

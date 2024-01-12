@@ -1,5 +1,6 @@
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
+import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/pages/chats/chat_room.dart';
 import 'package:convo/pages/chats/widgets/search_card.dart';
@@ -35,13 +36,15 @@ class _SearchUserState extends State<SearchUser> {
         child: BlocListener<ChatBloc, ChatState>(
           listener: (context, state) async {
             if (state is MakeChatRoomSuccess) {
-              Navigator.pushReplacement(
-                context,
+              Navigator.of(context).pushReplacement(
                 PageTransition(
                   child: ChatRoom(model: state.data),
                   type: PageTransitionType.rightToLeft,
                 ),
               );
+            }
+            if (state is ChatError) {
+              showSnackbar(context, state.e);
             }
           },
           child: BlocBuilder<UserBloc, UserState>(
@@ -72,12 +75,12 @@ class _SearchUserState extends State<SearchUser> {
                     CustomRoundField(
                       onFieldSubmitted: (value) {
                         if (value!.isNotEmpty) {
-                          BlocProvider.of<UserBloc>(context)
-                              .add(SearchUserEvent(
-                            search:
-                                value.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
-                            exceptUid: currentUser!.uid,
-                          ));
+                          BlocProvider.of<UserBloc>(context).add(
+                            SearchUserEvent(
+                              search: cleanUsernameSearch(value),
+                              exceptUid: currentUser!.uid,
+                            ),
+                          );
                         }
                       },
                       prefixIconUrl: 'assets/icons/search.png',
@@ -115,19 +118,19 @@ class _SearchUserState extends State<SearchUser> {
                                         await ChatService()
                                             .isChatRoomExists(
                                                 myUid: currentUser!.uid,
-                                                interlocutorUid: user.uid!)
+                                                friendUid: user.uid!)
                                             .then((value) {
                                           value == null
                                               ? BlocProvider.of<ChatBloc>(
                                                       context)
                                                   .add(
                                                   MakeChatRoomEvent(
-                                                      myUid: currentUser!.uid,
-                                                      interlocutorUid:
-                                                          user.uid.toString()),
+                                                    myUid: currentUser!.uid,
+                                                    friendUid:
+                                                        user.uid.toString(),
+                                                  ),
                                                 )
-                                              : Navigator.push(
-                                                  context,
+                                              : Navigator.of(context).push(
                                                   PageTransition(
                                                       child: ChatRoom(
                                                           model: value),

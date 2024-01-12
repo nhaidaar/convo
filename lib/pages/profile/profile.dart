@@ -3,6 +3,7 @@ import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/pages/profile/edit_profile.dart';
+import 'package:convo/services/user_services.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -70,8 +71,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                   ListTile(
                     onTap: () {
-                      Navigator.push(
-                        context,
+                      Navigator.of(context).push(
                         PageTransition(
                           child: EditProfilePage(user: state.model),
                           type: PageTransitionType.rightToLeft,
@@ -121,9 +121,14 @@ class ProfilePage extends StatelessWidget {
                                     ),
                                     Expanded(
                                       child: CustomButton(
-                                        action: () => context
-                                            .read<AuthBloc>()
-                                            .add(SignOutEvent()),
+                                        action: () async {
+                                          await UserService()
+                                              .updateOnlineStatus(false);
+                                          // ignore: use_build_context_synchronously
+                                          context
+                                              .read<AuthBloc>()
+                                              .add(SignOutEvent());
+                                        },
                                         title: 'Confirm',
                                       ),
                                     ),

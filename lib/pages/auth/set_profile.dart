@@ -7,6 +7,7 @@ import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/user_model.dart';
 import 'package:convo/pages/home.dart';
+import 'package:convo/services/user_services.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:flutter/material.dart';
@@ -62,19 +63,23 @@ class _SetProfilePageState extends State<SetProfilePage> {
               displayName: displayNameController.text,
               username: usernameController.text,
               profilePicture: state.url,
+              lastActive: DateTime.now().millisecondsSinceEpoch.toString(),
+              isOnline: true,
+              pushToken: '',
             );
+
             context.read<UserBloc>().add(PostUserDataEvent(finalModel));
           }
 
           if (state is UserSuccess) {
-            Navigator.pushAndRemoveUntil(
-              context,
+            Navigator.of(context).pushAndRemoveUntil(
               PageTransition(
                 child: const Home(),
                 type: PageTransitionType.fade,
               ),
               (route) => false,
             );
+            UserService().updateOnlineStatus(true);
           }
 
           if (state is UserError) {
@@ -174,9 +179,9 @@ class _SetProfilePageState extends State<SetProfilePage> {
                   padding: const EdgeInsets.all(20),
                   child: CustomButton(
                     title: 'Continue',
-                    disabled: areFieldsEmpty,
+                    disabled: areFieldsEmpty || image == null,
                     action: () {
-                      if (!areFieldsEmpty) {
+                      if (!areFieldsEmpty && image != null) {
                         context.read<UserBloc>().add(
                               UploadToStorageEvent(
                                 uid: widget.model.uid!,

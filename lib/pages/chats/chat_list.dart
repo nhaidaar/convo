@@ -1,6 +1,6 @@
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/pages/chats/create_group.dart';
+import 'package:convo/pages/chats/group_selectmember.dart';
 import 'package:convo/pages/chats/search.dart';
 import 'package:convo/pages/chats/widgets/chat_card.dart';
 import 'package:convo/pages/chats/widgets/group_card.dart';
@@ -86,21 +86,14 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
               ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageTransition(
-                      child: const SearchUser(),
-                      type: PageTransitionType.rightToLeft,
-                    ),
-                  );
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              floatingActionButton: FloatingButton(
+                icon: const Icon(Icons.add),
+                action: () => Navigator.of(context).push(
+                  PageTransition(
+                    child: const SearchUser(),
+                    type: PageTransitionType.rightToLeft,
+                  ),
                 ),
-                backgroundColor: blue,
-                child: const Icon(Icons.add),
               ),
             ),
             Scaffold(
@@ -113,7 +106,7 @@ class _ChatPageState extends State<ChatPage> {
                       if (state.data.isEmpty) {
                         return Center(
                           child: Text(
-                            'Welcome aboard!\nChat list is empty. Why not say hello?',
+                            'It looks a bit empty here.\nStart a new group and invite friends to join!',
                             style: mediumTS,
                             textAlign: TextAlign.center,
                           ),
@@ -135,26 +128,41 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
               ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageTransition(
-                      child: const CreateGroup(),
-                      type: PageTransitionType.rightToLeft,
-                    ),
-                  );
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              floatingActionButton: FloatingButton(
+                icon: const Icon(Icons.group_add),
+                action: () => Navigator.of(context).push(
+                  PageTransition(
+                    child: const CreateGroup(),
+                    type: PageTransitionType.rightToLeft,
+                  ),
                 ),
-                backgroundColor: blue,
-                child: const Icon(Icons.group_add),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class FloatingButton extends StatelessWidget {
+  final Icon icon;
+  final VoidCallback? action;
+  const FloatingButton({
+    super.key,
+    required this.icon,
+    this.action,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: action,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      backgroundColor: blue,
+      child: icon,
     );
   }
 }

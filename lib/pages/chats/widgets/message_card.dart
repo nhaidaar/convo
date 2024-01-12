@@ -1,11 +1,11 @@
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/models/chat_model.dart';
+import 'package:convo/models/message_model.dart';
 import 'package:convo/services/user_services.dart';
 import 'package:flutter/material.dart';
 
 class MessageOut extends StatelessWidget {
-  final ChatModel model;
+  final MessageModel model;
   const MessageOut({super.key, required this.model});
 
   @override
@@ -60,7 +60,7 @@ class MessageOut extends StatelessWidget {
 }
 
 class MessageIn extends StatelessWidget {
-  final ChatModel model;
+  final MessageModel model;
   const MessageIn({super.key, required this.model});
 
   @override
@@ -115,7 +115,7 @@ class MessageIn extends StatelessWidget {
 }
 
 class GroupMessageIn extends StatelessWidget {
-  final ChatModel model;
+  final MessageModel model;
   const GroupMessageIn({super.key, required this.model});
 
   @override

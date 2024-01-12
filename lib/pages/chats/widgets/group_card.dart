@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
@@ -28,8 +29,7 @@ class _GroupCardState extends State<GroupCard> {
         ),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
+          Navigator.of(context).push(
             PageTransition(
               child: GroupRoom(model: widget.model),
               type: PageTransitionType.rightToLeft,
@@ -48,15 +48,43 @@ class _GroupCardState extends State<GroupCard> {
               ),
               child: Row(
                 children: [
+                  widget.model.groupPicture != ''
+                      ? CachedNetworkImage(
+                          imageUrl: widget.model.groupPicture.toString(),
+                          imageBuilder: (context, imageProvider) {
+                            return CircleAvatar(
+                              radius: 24,
+                              backgroundColor: Colors.transparent,
+                              foregroundImage: imageProvider,
+                            );
+                          },
+                          placeholder: (context, url) {
+                            return const CircleAvatar(
+                              radius: 24,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: AssetImage(
+                                'assets/images/profile.jpg',
+                              ),
+                            );
+                          },
+                        )
+                      : const CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: AssetImage(
+                            'assets/images/profile.jpg',
+                          ),
+                        ),
+                  const SizedBox(
+                    width: 16,
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text(
-                          widget.model.interlocutors!
-                              .map((user) => user.displayName)
-                              .join(', '),
+                          widget.model.title.toString(),
                           style: semiboldTS.copyWith(fontSize: 18),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

@@ -9,7 +9,18 @@ part 'user_event.dart';
 part 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
+  final UserService _userService = UserService();
+
   UserBloc() : super(UserInitial()) {
+    on<StreamUserDataEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _userService.streamUserData(event.uid),
+          onData: (data) => emit(UserStreamDataSuccess(data)),
+          onError: (error, stackTrace) => emit(UserError(error.toString())),
+        );
+      },
+    );
     on<UploadToStorageEvent>((event, emit) async {
       emit(UserLoading());
       try {

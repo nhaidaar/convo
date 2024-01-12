@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:another_flushbar/flushbar.dart';
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
@@ -66,16 +64,34 @@ String formatDate(DateTime dateTime) {
   }
 }
 
-String generateAutoId() {
-  const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const autoIdLength = 20; // Length of auto-generated ID
-  final random = Random();
-  final buffer = StringBuffer();
+String cleanUsernameSearch(String value) {
+  return value.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+}
 
-  for (var i = 0; i < autoIdLength; i++) {
-    buffer.write(chars[random.nextInt(chars.length)]);
+String getLastActiveTime({
+  required BuildContext context,
+  required String lastActive,
+}) {
+  final int i = int.tryParse(lastActive) ?? -1;
+
+  //if time is not available then return below statement
+  if (i == -1) return 'Last seen not available';
+
+  DateTime time = DateTime.fromMillisecondsSinceEpoch(i);
+  DateTime now = DateTime.now();
+
+  String formattedTime = TimeOfDay.fromDateTime(time).format(context);
+  if (time.day == now.day &&
+      time.month == now.month &&
+      time.year == time.year) {
+    return 'Last seen today at $formattedTime';
   }
 
-  return buffer.toString();
+  if ((now.difference(time).inHours / 24).round() == 1) {
+    return 'Last seen yesterday at $formattedTime';
+  }
+
+  String month = DateFormat('MMM').format(time);
+
+  return 'Last seen on ${time.day} $month on $formattedTime';
 }

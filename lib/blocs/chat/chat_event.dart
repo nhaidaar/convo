@@ -41,7 +41,7 @@ class GetLastMessageEvent extends ChatEvent {
 
 class SendMessageEvent extends ChatEvent {
   final String roomId;
-  final ChatModel message;
+  final MessageModel message;
   const SendMessageEvent({
     required this.roomId,
     required this.message,
@@ -53,20 +53,21 @@ class SendMessageEvent extends ChatEvent {
 
 class MakeChatRoomEvent extends ChatEvent {
   final String myUid;
-  final String interlocutorUid;
+  final String friendUid;
   const MakeChatRoomEvent({
     required this.myUid,
-    required this.interlocutorUid,
+    required this.friendUid,
   });
 
   @override
-  List<Object> get props => [myUid, interlocutorUid];
+  List<Object> get props => [myUid, friendUid];
 }
 
 class MakeGroupRoomEvent extends ChatEvent {
-  final List<UserModel> members;
-  const MakeGroupRoomEvent(this.members);
+  final GroupRoomModel groupRoom;
+  final File image;
+  const MakeGroupRoomEvent(this.groupRoom, this.image);
 
   @override
-  List<Object> get props => [members];
+  List<Object> get props => [groupRoom, image];
 }
