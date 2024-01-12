@@ -4,6 +4,7 @@ import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/services/chat_services.dart';
+import 'package:convo/services/user_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -56,6 +57,22 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       try {
         await _chatService.sendMessage(
             roomId: event.roomId, model: event.message);
+        emit(ChatSuccess());
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<SendNotificationEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        final friends = await UserService().getUserToken(event.to);
+        final me = await UserService().getUserData(event.from);
+        await _chatService.sendPushNotification(
+          pushTokens: friends,
+          from: me!.displayName.toString(),
+          msg: event.message,
+        );
         emit(ChatSuccess());
       } catch (e) {
         emit(ChatError(e.toString()));

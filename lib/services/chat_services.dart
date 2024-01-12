@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,7 @@ import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart';
 
 class ChatService {
   final _firestore = FirebaseFirestore.instance;
@@ -79,19 +81,14 @@ class ChatService {
     required File image,
   }) async {
     final storageRef = _storage.ref().child('group/profile_picture/$name.jpg');
-
-    // Upload the file to Firebase Storage
     final uploadTask = storageRef.putFile(image);
 
-    // Get the download URL
     final snapshot = await uploadTask;
     final downloadURL = await snapshot.ref.getDownloadURL();
-
-    // Return the download URL
     return downloadURL;
   }
 
-  Future<void> sendMessage({
+  Future<String> sendMessage({
     required String roomId,
     required MessageModel model,
   }) async {
@@ -101,8 +98,40 @@ class ChatService {
           .doc(roomId)
           .collection('messages')
           .add(model.toMap());
+      return model.message;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<void> sendPushNotification({
+    required List<String> pushTokens,
+    required String from,
+    required String msg,
+  }) async {
+    for (String pushToken in pushTokens) {
+      try {
+        final body = {
+          "to": pushToken,
+          "notification": {
+            "title": from,
+            "body": msg,
+            "android_channel_id": "chats"
+          },
+        };
+
+        await post(
+          Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader:
+                'key=AAAAgliY-r8:APA91bGK8DTf7Krhocz_qoMFG7pj5vEgz5S8wAx43n4Cfh3a8Nq_k7cS6_71ED7m9veaspmJJXSyIQynKWoPFIcnAbVcrvXieV5rSv1HWKu8el4KItM7zNUnpVxxp4tVzcFk6Pz-7hbv'
+          },
+          body: jsonEncode(body),
+        );
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 

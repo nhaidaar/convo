@@ -51,6 +51,20 @@ class SendMessageEvent extends ChatEvent {
   List<Object> get props => [roomId, message];
 }
 
+class SendNotificationEvent extends ChatEvent {
+  final List<String> to;
+  final String from;
+  final String message;
+  const SendNotificationEvent({
+    required this.to,
+    required this.from,
+    required this.message,
+  });
+
+  @override
+  List<Object> get props => [to, from, message];
+}
+
 class MakeChatRoomEvent extends ChatEvent {
   final String myUid;
   final String friendUid;

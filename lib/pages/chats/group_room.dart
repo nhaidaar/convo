@@ -21,8 +21,8 @@ class GroupRoom extends StatefulWidget {
 
 class _GroupRoomState extends State<GroupRoom> {
   final user = FirebaseAuth.instance.currentUser;
-  TextEditingController messageController = TextEditingController();
-  FocusNode messageFocus = FocusNode();
+  final messageController = TextEditingController();
+  final messageFocus = FocusNode();
 
   @override
   void dispose() {
@@ -33,6 +33,27 @@ class _GroupRoomState extends State<GroupRoom> {
 
   @override
   Widget build(BuildContext context) {
+    void handleSendMessage() {
+      context.read<ChatBloc>().add(
+            SendMessageEvent(
+              roomId: widget.model.roomId.toString(),
+              message: MessageModel(
+                message: messageController.text,
+                sendAt: DateTime.now(),
+                sendBy: user!.uid,
+              ),
+            ),
+          );
+      context.read<ChatBloc>().add(
+            SendNotificationEvent(
+              to: widget.model.members!,
+              from: user!.uid,
+              message: messageController.text,
+            ),
+          );
+      messageController.clear();
+    }
+
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
@@ -174,6 +195,10 @@ class _GroupRoomState extends State<GroupRoom> {
                     children: [
                       Expanded(
                         child: CustomRoundField(
+                          onFieldSubmitted: (value) {
+                            handleSendMessage();
+                            messageFocus.requestFocus();
+                          },
                           controller: messageController,
                           focusNode: messageFocus,
                           fillColor: Colors.grey[100],
@@ -184,20 +209,7 @@ class _GroupRoomState extends State<GroupRoom> {
                         width: 16,
                       ),
                       GestureDetector(
-                        onTap: () {
-                          context.read<ChatBloc>().add(
-                                SendMessageEvent(
-                                  roomId: widget.model.roomId.toString(),
-                                  message: MessageModel(
-                                    message: messageController.text,
-                                    sendAt: DateTime.now(),
-                                    sendBy: user!.uid,
-                                  ),
-                                ),
-                              );
-                          messageFocus.unfocus();
-                          messageController.clear();
-                        },
+                        onTap: handleSendMessage,
                         child: Image.asset(
                           'assets/icons/send.png',
                           scale: 2,

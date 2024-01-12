@@ -73,7 +73,6 @@ String getLastActiveTime({
   required String lastActive,
 }) {
   final int i = int.tryParse(lastActive) ?? -1;
-
   //if time is not available then return below statement
   if (i == -1) return 'Last seen not available';
 
@@ -92,6 +91,5 @@ String getLastActiveTime({
   }
 
   String month = DateFormat('MMM').format(time);
-
   return 'Last seen on ${time.day} $month on $formattedTime';
 }
