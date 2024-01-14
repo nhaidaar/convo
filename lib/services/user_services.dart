@@ -107,4 +107,8 @@ class UserService {
       'pushToken': token,
     });
   }
+
+  Future<void> updateUserData(UserModel userModel) async {
+    await _firestore.doc(userModel.uid).set(userModel.toMap());
+  }
 }

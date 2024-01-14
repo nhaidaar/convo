@@ -54,3 +54,11 @@ class SearchUserEvent extends UserEvent {
   @override
   List<Object> get props => [search, exceptUid];
 }
+
+class UpdateUserDataEvent extends UserEvent {
+  final UserModel model;
+  const UpdateUserDataEvent(this.model);
+
+  @override
+  List<Object> get props => [model];
+}

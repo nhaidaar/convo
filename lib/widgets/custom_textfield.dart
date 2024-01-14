@@ -7,17 +7,19 @@ class CustomFormField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final bool isPassword;
+  final bool enabled;
   final String? hintText;
   final VoidCallback? action;
   const CustomFormField({
     super.key,
     this.focusNode,
     this.controller,
-    this.hintText,
+    this.keyboardType,
     this.obscureText = false,
     this.isPassword = false,
+    this.enabled = true,
+    this.hintText,
     this.action,
-    this.keyboardType,
   });
 
   @override
@@ -28,6 +30,9 @@ class CustomFormField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       decoration: InputDecoration(
+        enabled: enabled,
+        fillColor: enabled ? null : Colors.grey.shade100,
+        filled: !enabled,
         suffixIcon: isPassword
             ? InkWell(
                 onTap: action,
@@ -50,6 +55,10 @@ class CustomFormField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.black),
         ),
       ),
     );
