@@ -7,21 +7,9 @@ abstract class ChatEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class GetChatListEvent extends ChatEvent {
-  final String uid;
-  const GetChatListEvent(this.uid);
+class GetChatListEvent extends ChatEvent {}
 
-  @override
-  List<Object> get props => [uid];
-}
-
-class GetGroupListEvent extends ChatEvent {
-  final String uid;
-  const GetGroupListEvent(this.uid);
-
-  @override
-  List<Object> get props => [uid];
-}
+class GetGroupListEvent extends ChatEvent {}
 
 class GetAllMessageEvent extends ChatEvent {
   final String roomId;
@@ -34,6 +22,14 @@ class GetAllMessageEvent extends ChatEvent {
 class GetLastMessageEvent extends ChatEvent {
   final String roomId;
   const GetLastMessageEvent(this.roomId);
+
+  @override
+  List<Object> get props => [roomId];
+}
+
+class GetUnreadMessageEvent extends ChatEvent {
+  final String roomId;
+  const GetUnreadMessageEvent(this.roomId);
 
   @override
   List<Object> get props => [roomId];
@@ -52,17 +48,19 @@ class SendMessageEvent extends ChatEvent {
 }
 
 class SendNotificationEvent extends ChatEvent {
-  final List<String> to;
   final String from;
+  final List<String> to;
+  final String groupTitle;
   final String message;
   const SendNotificationEvent({
-    required this.to,
     required this.from,
+    required this.to,
+    required this.groupTitle,
     required this.message,
   });
 
   @override
-  List<Object> get props => [to, from, message];
+  List<Object> get props => [to, from, groupTitle, message];
 }
 
 class MakeChatRoomEvent extends ChatEvent {

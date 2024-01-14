@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
+import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/pages/chats/widgets/message_card.dart';
 import 'package:convo/pages/home.dart';
+import 'package:convo/services/chat_services.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -38,20 +42,52 @@ class _GroupRoomState extends State<GroupRoom> {
             SendMessageEvent(
               roomId: widget.model.roomId.toString(),
               message: MessageModel(
+                roomId: widget.model.roomId.toString(),
+                image: '',
                 message: messageController.text,
-                sendAt: DateTime.now(),
                 sendBy: user!.uid,
+                sendAt: DateTime.now().millisecondsSinceEpoch.toString(),
+                readBy: [],
+                readAt: [],
+                hiddenFor: [],
               ),
             ),
           );
       context.read<ChatBloc>().add(
             SendNotificationEvent(
-              to: widget.model.members!,
               from: user!.uid,
+              to: widget.model.members!,
+              groupTitle: '@ ${widget.model.title}',
               message: messageController.text,
             ),
           );
       messageController.clear();
+    }
+
+    void handleSendImage(String imageUrl) {
+      context.read<ChatBloc>().add(
+            SendMessageEvent(
+              roomId: widget.model.roomId.toString(),
+              message: MessageModel(
+                roomId: widget.model.roomId.toString(),
+                image: imageUrl,
+                message: '',
+                sendBy: user!.uid,
+                sendAt: DateTime.now().millisecondsSinceEpoch.toString(),
+                readBy: [],
+                readAt: [],
+                hiddenFor: [],
+              ),
+            ),
+          );
+      context.read<ChatBloc>().add(
+            SendNotificationEvent(
+              from: user!.uid,
+              to: widget.model.members!,
+              groupTitle: '@ ${widget.model.title}',
+              message: '📷 Image',
+            ),
+          );
     }
 
     return SafeArea(
@@ -153,10 +189,8 @@ class _GroupRoomState extends State<GroupRoom> {
           ),
           backgroundColor: Colors.grey[100],
           body: BlocProvider(
-            create: (context) => ChatBloc()
-              ..add(
-                GetAllMessageEvent(widget.model.roomId!),
-              ),
+            create: (context) =>
+                ChatBloc()..add(GetAllMessageEvent(widget.model.roomId!)),
             child: Column(
               children: [
                 Expanded(
@@ -198,6 +232,21 @@ class _GroupRoomState extends State<GroupRoom> {
                           onFieldSubmitted: (value) {
                             handleSendMessage();
                             messageFocus.requestFocus();
+                          },
+                          iconColor: Colors.grey,
+                          suffixIconUrl: 'assets/icons/photo.png',
+                          suffixOnTap: () async {
+                            final images = await pickMultiImage();
+                            var time = DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString();
+                            for (var image in images) {
+                              final name = await ChatService().uploadChatImage(
+                                  uid: user!.uid,
+                                  name: time,
+                                  image: File(image.path));
+                              handleSendImage(name);
+                            }
                           },
                           controller: messageController,
                           focusNode: messageFocus,

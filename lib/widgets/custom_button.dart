@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String title;
+  final double titleSize;
+  final double padding;
   final bool invert;
   final bool disabled;
   final VoidCallback? action;
   const CustomButton(
       {super.key,
       required this.title,
+      this.titleSize = 16,
+      this.padding = 16,
       this.action,
       this.invert = false,
       this.disabled = false});
@@ -21,7 +25,7 @@ class CustomButton extends StatelessWidget {
         opacity: disabled ? 0.4 : 1,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
             color: invert ? Colors.white : blue,
             borderRadius: BorderRadius.circular(10),
@@ -31,7 +35,7 @@ class CustomButton extends StatelessWidget {
             title,
             style: semiboldTS.copyWith(
               color: invert ? blue : Colors.white,
-              fontSize: 16,
+              fontSize: titleSize,
             ),
             textAlign: TextAlign.center,
           ),

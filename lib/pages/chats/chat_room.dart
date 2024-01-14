@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
@@ -7,6 +9,7 @@ import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/pages/chats/widgets/message_card.dart';
 import 'package:convo/pages/home.dart';
+import 'package:convo/services/chat_services.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -40,20 +43,52 @@ class _ChatRoomState extends State<ChatRoom> {
             SendMessageEvent(
               roomId: widget.model.roomId.toString(),
               message: MessageModel(
+                roomId: widget.model.roomId.toString(),
+                image: '',
                 message: messageController.text,
-                sendAt: DateTime.now(),
                 sendBy: user!.uid,
+                sendAt: DateTime.now().millisecondsSinceEpoch.toString(),
+                readBy: [],
+                readAt: [],
+                hiddenFor: [],
               ),
             ),
           );
       context.read<ChatBloc>().add(
             SendNotificationEvent(
-              to: widget.model.members!,
               from: user!.uid,
+              to: widget.model.members!,
+              groupTitle: '',
               message: messageController.text,
             ),
           );
       messageController.clear();
+    }
+
+    void handleSendImage(String imageUrl) {
+      context.read<ChatBloc>().add(
+            SendMessageEvent(
+              roomId: widget.model.roomId.toString(),
+              message: MessageModel(
+                roomId: widget.model.roomId.toString(),
+                image: imageUrl,
+                message: '',
+                sendBy: user!.uid,
+                sendAt: DateTime.now().millisecondsSinceEpoch.toString(),
+                readBy: [],
+                readAt: [],
+                hiddenFor: [],
+              ),
+            ),
+          );
+      context.read<ChatBloc>().add(
+            SendNotificationEvent(
+              from: user!.uid,
+              to: widget.model.members!,
+              groupTitle: '',
+              message: '📷 Image',
+            ),
+          );
     }
 
     return SafeArea(
@@ -62,21 +97,20 @@ class _ChatRoomState extends State<ChatRoom> {
             UserBloc()..add(StreamUserDataEvent(widget.model.members![0])),
         child: WillPopScope(
           onWillPop: () async {
-            Navigator.pushAndRemoveUntil(
-                context,
-                PageTransition(
-                  child: const Home(),
-                  type: PageTransitionType.leftToRight,
-                ),
-                (route) => false);
+            Navigator.of(context).pushAndRemoveUntil(
+              PageTransition(
+                child: const Home(),
+                type: PageTransitionType.leftToRight,
+              ),
+              (route) => false,
+            );
             return false;
           },
           child: Scaffold(
             appBar: AppBar(
               leading: IconButton(
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
+                  Navigator.of(context).pushAndRemoveUntil(
                     PageTransition(
                       child: const Home(),
                       type: PageTransitionType.leftToRight,
@@ -214,8 +248,23 @@ class _ChatRoomState extends State<ChatRoom> {
                         Expanded(
                           child: CustomRoundField(
                             onFieldSubmitted: (value) {
-                              handleSendMessage();
+                              if (value!.isNotEmpty) {
+                                handleSendMessage();
+                              }
                               messageFocus.requestFocus();
+                            },
+                            iconColor: Colors.grey,
+                            suffixIconUrl: 'assets/icons/photo.png',
+                            suffixOnTap: () async {
+                              final images = await pickMultiImage();
+                              for (var image in images) {
+                                final name = await ChatService().uploadChatImage(
+                                    uid: user!.uid,
+                                    name:
+                                        '${DateTime.now().millisecondsSinceEpoch}',
+                                    image: File(image.path));
+                                handleSendImage(name);
+                              }
                             },
                             controller: messageController,
                             focusNode: messageFocus,
@@ -227,7 +276,11 @@ class _ChatRoomState extends State<ChatRoom> {
                           width: 16,
                         ),
                         GestureDetector(
-                          onTap: handleSendMessage,
+                          onTap: () {
+                            if (messageController.text.isNotEmpty) {
+                              handleSendMessage();
+                            }
+                          },
                           child: Image.asset(
                             'assets/icons/send.png',
                             scale: 2,

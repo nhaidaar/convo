@@ -61,18 +61,26 @@ class CustomRoundField extends StatelessWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? prefixIconUrl;
+  final VoidCallback? prefixOnTap;
+  final String? suffixIconUrl;
+  final VoidCallback? suffixOnTap;
+  final Color? iconColor;
   final String? hintText;
   final Color? fillColor;
   final Color borderColor;
   const CustomRoundField({
     super.key,
+    this.onFieldSubmitted,
     this.controller,
     this.focusNode,
+    this.prefixIconUrl,
+    this.prefixOnTap,
+    this.suffixIconUrl,
+    this.suffixOnTap,
+    this.iconColor,
     this.hintText,
     this.fillColor,
     this.borderColor = Colors.transparent,
-    this.prefixIconUrl,
-    this.onFieldSubmitted,
   });
 
   @override
@@ -83,10 +91,29 @@ class CustomRoundField extends StatelessWidget {
       focusNode: focusNode,
       decoration: InputDecoration(
         prefixIcon: prefixIconUrl != null
-            ? Image.asset(
-                prefixIconUrl.toString(),
-                scale: 2,
-                color: borderColor,
+            ? Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: GestureDetector(
+                  onTap: prefixOnTap,
+                  child: Image.asset(
+                    prefixIconUrl.toString(),
+                    scale: 2,
+                    color: iconColor ?? borderColor,
+                  ),
+                ),
+              )
+            : null,
+        suffixIcon: suffixIconUrl != null
+            ? Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: GestureDetector(
+                  onTap: suffixOnTap,
+                  child: Image.asset(
+                    suffixIconUrl.toString(),
+                    scale: 2,
+                    color: iconColor ?? borderColor,
+                  ),
+                ),
               )
             : null,
         fillColor: fillColor,

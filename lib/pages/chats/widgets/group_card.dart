@@ -23,10 +23,8 @@ class _GroupCardState extends State<GroupCard> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ChatBloc()
-        ..add(
-          GetLastMessageEvent(widget.model.roomId!),
-        ),
+      create: (context) =>
+          ChatBloc()..add(GetLastMessageEvent(widget.model.roomId!)),
       child: GestureDetector(
         onTap: () {
           Navigator.of(context).push(
@@ -81,7 +79,7 @@ class _GroupCardState extends State<GroupCard> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           widget.model.title.toString(),
@@ -92,7 +90,9 @@ class _GroupCardState extends State<GroupCard> {
                         (state is GetLastMessageSuccess)
                             ? Text(
                                 (state.data.sendBy == user!.uid ? 'Me: ' : '') +
-                                    state.data.message,
+                                    (state.data.image != ''
+                                        ? '\t📷 Image'
+                                        : state.data.message),
                                 style: mediumTS.copyWith(
                                   fontSize: 15,
                                   color: Colors.grey,
@@ -107,27 +107,46 @@ class _GroupCardState extends State<GroupCard> {
                   const SizedBox(
                     width: 20,
                   ),
-                  (state is GetLastMessageSuccess)
-                      ? (formatDate(state.data.sendAt) != ''
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  formatDate(state.data.sendAt),
-                                  style: mediumTS.copyWith(color: Colors.grey),
-                                ),
-                                Text(
-                                  formatTime(state.data.sendAt),
-                                  style: mediumTS.copyWith(color: Colors.grey),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              formatTime(state.data.sendAt),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      BlocBuilder<ChatBloc, ChatState>(
+                        builder: (context, state) {
+                          if (state is GetLastMessageSuccess) {
+                            return Text(
+                              formatTimeForLastMessage(state.data.sendAt),
                               style: mediumTS.copyWith(color: Colors.grey),
-                            ))
-                      : const Text(''),
+                            );
+                          }
+                          return const Text('');
+                        },
+                      ),
+                      BlocProvider(
+                        create: (context) => ChatBloc()
+                          ..add(GetUnreadMessageEvent(widget.model.roomId!)),
+                        child: BlocBuilder<ChatBloc, ChatState>(
+                          builder: (context, state) {
+                            if (state is GetUnreadMessageSuccess &&
+                                state.data > 0) {
+                              return CircleAvatar(
+                                radius: 11,
+                                backgroundColor: Colors.red,
+                                child: Text(
+                                  state.data.toString(),
+                                  style: mediumTS.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             );

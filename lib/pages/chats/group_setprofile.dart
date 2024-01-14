@@ -173,6 +173,7 @@ class _CreateGroupNextState extends State<CreateGroupNext> {
 
                         final groupRoom = GroupRoomModel(
                           roomId: '',
+                          admin: currentUser!.uid,
                           members: membersUid,
                           title: titleController.text,
                           groupPicture: '',

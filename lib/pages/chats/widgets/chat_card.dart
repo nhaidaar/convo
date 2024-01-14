@@ -91,7 +91,7 @@ class _ChatCardState extends State<ChatCard> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     BlocBuilder<UserBloc, UserState>(
                       builder: (context, state) {
@@ -110,7 +110,9 @@ class _ChatCardState extends State<ChatCard> {
                         if (state is GetLastMessageSuccess) {
                           return Text(
                             (state.data.sendBy == user!.uid ? 'Me: ' : '') +
-                                state.data.message,
+                                (state.data.image != ''
+                                    ? '\t📷 Image'
+                                    : state.data.message),
                             style: mediumTS.copyWith(
                               fontSize: 15,
                               color: Colors.grey,
@@ -128,31 +130,45 @@ class _ChatCardState extends State<ChatCard> {
               const SizedBox(
                 width: 20,
               ),
-              BlocBuilder<ChatBloc, ChatState>(
-                builder: (context, state) {
-                  if (state is GetLastMessageSuccess) {
-                    return formatDate(state.data.sendAt) != ''
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text(
-                                formatDate(state.data.sendAt),
-                                style: mediumTS.copyWith(color: Colors.grey),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  BlocBuilder<ChatBloc, ChatState>(
+                    builder: (context, state) {
+                      if (state is GetLastMessageSuccess) {
+                        return Text(
+                          formatTimeForLastMessage(state.data.sendAt),
+                          style: mediumTS.copyWith(color: Colors.grey),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                  BlocProvider(
+                    create: (context) => ChatBloc()
+                      ..add(GetUnreadMessageEvent(widget.model.roomId!)),
+                    child: BlocBuilder<ChatBloc, ChatState>(
+                      builder: (context, state) {
+                        if (state is GetUnreadMessageSuccess &&
+                            state.data > 0) {
+                          return CircleAvatar(
+                            radius: 11,
+                            backgroundColor: Colors.red,
+                            child: Text(
+                              state.data.toString(),
+                              style: mediumTS.copyWith(
+                                color: Colors.white,
+                                fontSize: 11,
                               ),
-                              Text(
-                                formatTime(state.data.sendAt),
-                                style: mediumTS.copyWith(color: Colors.grey),
-                              ),
-                            ],
-                          )
-                        : Text(
-                            formatTime(state.data.sendAt),
-                            style: mediumTS.copyWith(color: Colors.grey),
+                            ),
                           );
-                  }
-                  return const Text('');
-                },
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

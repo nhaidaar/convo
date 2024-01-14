@@ -24,7 +24,15 @@ void showSnackbar(BuildContext context, String message) {
 }
 
 Future<XFile?> pickImage() async {
-  final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+  final image = await ImagePicker().pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 80,
+  );
+  return image;
+}
+
+Future<List<XFile>> pickMultiImage() async {
+  final image = await ImagePicker().pickMultiImage(imageQuality: 80);
   return image;
 }
 
@@ -44,23 +52,44 @@ Future<CroppedFile?> cropImage(XFile image) async {
   return cropped;
 }
 
-String formatTime(DateTime dateTime) {
-  return DateFormat('HH:mm').format(dateTime);
-}
+String formatTimeForLastMessage(String time) {
+  final int i = int.tryParse(time) ?? -1;
+  //if time is not available then return below statement
+  if (i == -1) return '';
 
-String formatDate(DateTime dateTime) {
+  DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(i);
+
   DateTime now = DateTime.now();
   DateTime today = DateTime(now.year, now.month, now.day);
   DateTime yesterday = DateTime(now.year, now.month, now.day - 1);
 
   if (dateTime.isAfter(today)) {
-    return '';
+    return DateFormat('HH:mm').format(dateTime);
   } else if (dateTime.isAfter(yesterday)) {
     return 'Yesterday';
-  } else if (dateTime.weekday == now.weekday) {
-    return DateFormat('EEEE').format(dateTime); // Display the day of the week
   } else {
-    return DateFormat('dd MMM').format(dateTime); // Display the date
+    return DateFormat('dd/MM/yy').format(dateTime); // Display the date
+  }
+}
+
+String formatTimeForChat(String time) {
+  final int i = int.tryParse(time) ?? -1;
+  //if time is not available then return below statement
+  if (i == -1) return '';
+
+  DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(i);
+  String timeOnly = DateFormat('HH:mm').format(dateTime);
+
+  DateTime now = DateTime.now();
+  DateTime today = DateTime(now.year, now.month, now.day);
+  DateTime yesterday = DateTime(now.year, now.month, now.day - 1);
+
+  if (dateTime.isAfter(today)) {
+    return timeOnly;
+  } else if (dateTime.isAfter(yesterday)) {
+    return 'Yesterday $timeOnly';
+  } else {
+    return '${DateFormat('dd MMM').format(dateTime)} $timeOnly'; // Display the date
   }
 }
 
@@ -91,5 +120,5 @@ String getLastActiveTime({
   }
 
   String month = DateFormat('MMM').format(time);
-  return 'Last seen on ${time.day} $month on $formattedTime';
+  return 'Last seen ${time.day} $month at $formattedTime';
 }

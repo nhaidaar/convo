@@ -18,7 +18,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<GetChatListEvent>(
       (event, emit) async {
         await emit.onEach(
-          _chatService.streamChatList(event.uid),
+          _chatService.streamChatList(),
           onData: (data) => emit(GetChatListSuccess(data)),
           onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
@@ -27,7 +27,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<GetGroupListEvent>(
       (event, emit) async {
         await emit.onEach(
-          _chatService.streamGroupList(event.uid),
+          _chatService.streamGroupList(),
           onData: (data) => emit(GetGroupListSuccess(data)),
           onError: (error, stackTrace) => emit(ChatError(error.toString())),
         );
@@ -51,6 +51,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         );
       },
     );
+    on<GetUnreadMessageEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamUnreadMessage(event.roomId),
+          onData: (data) => emit(GetUnreadMessageSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
+        );
+      },
+    );
 
     on<SendMessageEvent>((event, emit) async {
       emit(ChatLoading());
@@ -70,7 +79,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final me = await UserService().getUserData(event.from);
         await _chatService.sendPushNotification(
           pushTokens: friends,
-          from: me!.displayName.toString(),
+          from: '${me!.displayName} ${event.groupTitle}',
           msg: event.message,
         );
         emit(ChatSuccess());

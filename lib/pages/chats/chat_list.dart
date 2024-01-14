@@ -4,7 +4,6 @@ import 'package:convo/pages/chats/group_selectmember.dart';
 import 'package:convo/pages/chats/search.dart';
 import 'package:convo/pages/chats/widgets/chat_card.dart';
 import 'package:convo/pages/chats/widgets/group_card.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
@@ -17,8 +16,6 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final user = FirebaseAuth.instance.currentUser;
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -56,8 +53,7 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             Scaffold(
               body: BlocProvider(
-                create: (context) =>
-                    ChatBloc()..add(GetChatListEvent(user!.uid)),
+                create: (context) => ChatBloc()..add(GetChatListEvent()),
                 child: BlocBuilder<ChatBloc, ChatState>(
                   builder: (context, state) {
                     if (state is GetChatListSuccess) {
@@ -98,8 +94,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             Scaffold(
               body: BlocProvider(
-                create: (context) =>
-                    ChatBloc()..add(GetGroupListEvent(user!.uid)),
+                create: (context) => ChatBloc()..add(GetGroupListEvent()),
                 child: BlocBuilder<ChatBloc, ChatState>(
                   builder: (context, state) {
                     if (state is GetGroupListSuccess) {

@@ -49,14 +49,17 @@ class _CreateGroupState extends State<CreateGroup> {
                 ),
                 children: [
                   (members.isNotEmpty)
-                      ? Text(
-                          'Selected Members',
-                          style: mediumTS.copyWith(fontSize: 16),
-                        )
-                      : Container(),
-                  (members.isNotEmpty)
-                      ? const SizedBox(
-                          height: 10,
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Selected Members (tap for delete)',
+                              style: mediumTS.copyWith(fontSize: 16),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            )
+                          ],
                         )
                       : Container(),
                   SingleChildScrollView(

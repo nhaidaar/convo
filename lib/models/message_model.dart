@@ -1,29 +1,47 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class MessageModel {
+  final String roomId;
+  final String image;
   final String message;
-  final DateTime sendAt;
   final String sendBy;
+  final String sendAt;
+  final List<String> readBy;
+  final List<String> readAt;
+  final List<String> hiddenFor;
 
   MessageModel({
+    required this.roomId,
+    required this.image,
     required this.message,
-    required this.sendAt,
     required this.sendBy,
+    required this.sendAt,
+    required this.readBy,
+    required this.readAt,
+    required this.hiddenFor,
   });
 
   Map<String, dynamic> toMap() {
     return {
+      'roomId': roomId,
+      'image': image,
       'message': message,
-      'sendAt': sendAt,
       'sendBy': sendBy,
+      'sendAt': sendAt,
+      'readBy': readBy,
+      'readAt': readAt,
+      'hiddenFor': hiddenFor,
     };
   }
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     return MessageModel(
+      roomId: map['roomId'] ?? '',
+      image: map['image'] ?? '',
       message: map['message'] ?? '',
-      sendAt: (map['sendAt'] as Timestamp).toDate(),
       sendBy: map['sendBy'] ?? '',
+      sendAt: map['sendAt'] ?? '',
+      readBy: List<String>.from(map['readBy']),
+      readAt: List<String>.from(map['readAt']),
+      hiddenFor: List<String>.from(map['hiddenFor']),
     );
   }
 }

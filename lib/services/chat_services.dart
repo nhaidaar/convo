@@ -5,10 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart';
 
 class ChatService {
+  final _user = FirebaseAuth.instance.currentUser;
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
 
@@ -56,8 +58,7 @@ class ChatService {
         }, SetOptions(merge: true));
       });
 
-      final groupPicture =
-          await uploadImageToStorage(name: roomId, image: image);
+      final groupPicture = await uploadGroupPicture(name: roomId, image: image);
 
       groupRoom.members!.remove(groupRoom.members![0]);
 
@@ -76,11 +77,24 @@ class ChatService {
     }
   }
 
-  Future<String> uploadImageToStorage({
+  Future<String> uploadGroupPicture({
     required String name,
     required File image,
   }) async {
     final storageRef = _storage.ref().child('group/profile_picture/$name.jpg');
+    final uploadTask = storageRef.putFile(image);
+
+    final snapshot = await uploadTask;
+    final downloadURL = await snapshot.ref.getDownloadURL();
+    return downloadURL;
+  }
+
+  Future<String> uploadChatImage({
+    required String uid,
+    required String name,
+    required File image,
+  }) async {
+    final storageRef = _storage.ref().child('user/image_sent/$uid/$name.jpg');
     final uploadTask = storageRef.putFile(image);
 
     final snapshot = await uploadTask;
@@ -97,11 +111,68 @@ class ChatService {
           .collection('chats')
           .doc(roomId)
           .collection('messages')
-          .add(model.toMap());
+          .doc(model.sendAt)
+          .set(model.toMap());
       return model.message;
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> updateUnread(MessageModel model) async {
+    DocumentReference doc = _firestore
+        .collection('chats')
+        .doc(model.roomId)
+        .collection('messages')
+        .doc(model.sendAt);
+    DocumentSnapshot docSnapshot = await doc.get();
+
+    MessageModel docModel =
+        MessageModel.fromMap(docSnapshot.data() as Map<String, dynamic>);
+    List<String> readBy = docModel.readBy;
+    List<String> readAt = docModel.readAt;
+
+    readBy.add(_user!.uid);
+    readAt.add(DateTime.now().millisecondsSinceEpoch.toString());
+
+    await doc.update(
+      {
+        'readBy': readBy,
+        'readAt': readAt,
+      },
+    );
+  }
+
+  Future<void> deleteMessageForEveryone(MessageModel model) async {
+    await _firestore
+        .collection('chats')
+        .doc(model.roomId)
+        .collection('messages')
+        .doc(model.sendAt)
+        .delete();
+
+    if (model.image.isNotEmpty) {
+      await _storage.refFromURL(model.image).delete();
+    }
+  }
+
+  Future<void> deleteMessageForMe(MessageModel model) async {
+    DocumentReference doc = _firestore
+        .collection('chats')
+        .doc(model.roomId)
+        .collection('messages')
+        .doc(model.sendAt);
+    DocumentSnapshot docSnapshot = await doc.get();
+
+    MessageModel docModel =
+        MessageModel.fromMap(docSnapshot.data() as Map<String, dynamic>);
+    List<String> hiddenFor = docModel.hiddenFor;
+
+    hiddenFor.add(_user!.uid);
+
+    await doc.update({
+      'hiddenFor': hiddenFor,
+    });
   }
 
   Future<void> sendPushNotification({
@@ -111,6 +182,7 @@ class ChatService {
   }) async {
     for (String pushToken in pushTokens) {
       try {
+        const fcmApi = 'DROP YOUR FCM API KEY HERE';
         final body = {
           "to": pushToken,
           "notification": {
@@ -124,8 +196,7 @@ class ChatService {
           Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: {
             HttpHeaders.contentTypeHeader: 'application/json',
-            HttpHeaders.authorizationHeader:
-                'key=AAAAgliY-r8:APA91bGK8DTf7Krhocz_qoMFG7pj5vEgz5S8wAx43n4Cfh3a8Nq_k7cS6_71ED7m9veaspmJJXSyIQynKWoPFIcnAbVcrvXieV5rSv1HWKu8el4KItM7zNUnpVxxp4tVzcFk6Pz-7hbv'
+            HttpHeaders.authorizationHeader: 'key=$fcmApi'
           },
           body: jsonEncode(body),
         );
@@ -164,10 +235,10 @@ class ChatService {
     }
   }
 
-  Stream<List<ChatRoomModel>> streamChatList(String uid) {
+  Stream<List<ChatRoomModel>> streamChatList() {
     return _firestore
         .collection('chats')
-        .where('members', arrayContains: uid)
+        .where('members', arrayContains: _user!.uid)
         .snapshots()
         .asyncMap((chatRoomSnapshot) async {
       List<ChatRoomModel> chatRooms = [];
@@ -177,7 +248,7 @@ class ChatService {
 
         if (data.members!.length == 2) {
           List<String> members = List<String>.from(data.members!);
-          members.remove(uid);
+          members.remove(_user!.uid);
 
           ChatRoomModel chatRoom = ChatRoomModel(
             roomId: data.roomId,
@@ -187,15 +258,14 @@ class ChatService {
           chatRooms.add(chatRoom);
         }
       }
-
       return chatRooms;
     });
   }
 
-  Stream<List<GroupRoomModel>> streamGroupList(String uid) {
+  Stream<List<GroupRoomModel>> streamGroupList() {
     return _firestore
         .collection('chats')
-        .where('members', arrayContains: uid)
+        .where('members', arrayContains: _user!.uid)
         .snapshots()
         .asyncMap((chatRoomSnapshot) async {
       List<GroupRoomModel> groupRooms = [];
@@ -205,7 +275,7 @@ class ChatService {
 
         if (data.members!.length > 2) {
           List<String> members = List<String>.from(data.members!);
-          members.remove(uid);
+          members.remove(_user!.uid);
 
           GroupRoomModel groupRoom = GroupRoomModel(
             roomId: data.roomId,
@@ -217,7 +287,6 @@ class ChatService {
           groupRooms.add(groupRoom);
         }
       }
-
       return groupRooms;
     });
   }
@@ -230,11 +299,27 @@ class ChatService {
         .orderBy('sendAt')
         .snapshots()
         .map((querySnapshot) {
-      return querySnapshot.docs.map(
-        (doc) {
-          return MessageModel.fromMap(doc.data());
-        },
-      ).toList();
+      // return querySnapshot.docs.map(
+      //   (doc) {
+      //     return MessageModel.fromMap(doc.data());
+      //   },
+      // ).toList();
+
+      List<MessageModel> chatList = querySnapshot.docs
+          .map((doc) {
+            MessageModel messageModel = MessageModel.fromMap(doc.data());
+
+            // Filter messages that not deleted for me
+            if (!messageModel.hiddenFor.contains(_user!.uid)) {
+              return messageModel;
+            } else {
+              return null;
+            }
+          })
+          .whereType<MessageModel>() // Filter out null values
+          .toList();
+
+      return chatList;
     });
   }
 
@@ -243,11 +328,51 @@ class ChatService {
         .collection('chats')
         .doc(roomId)
         .collection('messages')
-        .orderBy('sendAt')
+        .orderBy('sendAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      final lastMessageDoc = snapshot.docs.last.data();
-      return MessageModel.fromMap(lastMessageDoc);
+      // final lastMessageDoc = snapshot.docs.first.data();
+      // return MessageModel.fromMap(lastMessageDoc);
+
+      for (QueryDocumentSnapshot doc in snapshot.docs) {
+        final msg = MessageModel.fromMap(doc.data() as Map<String, dynamic>);
+
+        if (!msg.hiddenFor.contains(_user!.uid)) {
+          return msg;
+        }
+      }
+
+      return MessageModel(
+        roomId: roomId,
+        image: '',
+        message: '',
+        sendBy: '',
+        sendAt: '',
+        readBy: [],
+        readAt: [],
+        hiddenFor: [],
+      );
+    });
+  }
+
+  Stream<int> streamUnreadMessage(String roomId) {
+    return _firestore
+        .collection('chats')
+        .doc(roomId)
+        .collection('messages')
+        .snapshots()
+        .map((snapshot) {
+      int unreadCount = 0;
+
+      for (QueryDocumentSnapshot doc in snapshot.docs) {
+        final msg = MessageModel.fromMap(doc.data() as Map<String, dynamic>);
+
+        if (msg.sendBy != _user!.uid && !msg.readBy.contains(_user!.uid)) {
+          unreadCount++;
+        }
+      }
+
+      return unreadCount;
     });
   }
 }

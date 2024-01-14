@@ -53,6 +53,14 @@ final class GetLastMessageSuccess extends ChatState {
   List<Object> get props => [data];
 }
 
+final class GetUnreadMessageSuccess extends ChatState {
+  final int data;
+  const GetUnreadMessageSuccess(this.data);
+
+  @override
+  List<Object> get props => [data];
+}
+
 final class MakeChatRoomSuccess extends ChatState {
   final ChatRoomModel data;
   const MakeChatRoomSuccess(this.data);
