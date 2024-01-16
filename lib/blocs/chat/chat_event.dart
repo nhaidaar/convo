@@ -83,3 +83,11 @@ class MakeGroupRoomEvent extends ChatEvent {
   @override
   List<Object> get props => [groupRoom, image];
 }
+
+class SaveImageEvent extends ChatEvent {
+  final String url;
+  const SaveImageEvent(this.url);
+
+  @override
+  List<Object> get props => [url];
+}

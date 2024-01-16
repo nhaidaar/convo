@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:convo/config/method.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
@@ -107,6 +108,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final data =
             await _chatService.makeGroupRoom(event.groupRoom, event.image);
         emit(MakeGroupRoomSuccess(data));
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<SaveImageEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        await saveImage(event.url);
+        emit(ChatSuccess());
       } catch (e) {
         emit(ChatError(e.toString()));
       }

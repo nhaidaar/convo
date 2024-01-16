@@ -8,6 +8,7 @@ class CustomButton extends StatelessWidget {
   final bool invert;
   final bool disabled;
   final VoidCallback? action;
+  final Color? buttonColor;
   const CustomButton(
       {super.key,
       required this.title,
@@ -15,7 +16,8 @@ class CustomButton extends StatelessWidget {
       this.padding = 16,
       this.action,
       this.invert = false,
-      this.disabled = false});
+      this.disabled = false,
+      this.buttonColor});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +29,11 @@ class CustomButton extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
-            color: invert ? Colors.white : blue,
+            color: buttonColor ?? (invert ? Colors.white : blue),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: invert ? blue : Colors.transparent),
+            border: Border.all(
+              color: buttonColor ?? (invert ? blue : Colors.transparent),
+            ),
           ),
           child: Text(
             title,
@@ -40,6 +44,32 @@ class CustomButton extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class LoadingButton extends StatelessWidget {
+  final Color? buttonColor;
+  const LoadingButton({super.key, this.buttonColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: buttonColor ?? blue,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: buttonColor ?? Colors.transparent),
+      ),
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ],
       ),
     );
   }

@@ -108,17 +108,32 @@ class _ChatCardState extends State<ChatCard> {
                     BlocBuilder<ChatBloc, ChatState>(
                       builder: (context, state) {
                         if (state is GetLastMessageSuccess) {
-                          return Text(
-                            (state.data.sendBy == user!.uid ? 'Me: ' : '') +
-                                (state.data.image != ''
+                          return Row(
+                            children: [
+                              if (state.data.message.isNotEmpty ||
+                                  state.data.image.isNotEmpty)
+                                Image.asset(
+                                  'assets/icons/read.png',
+                                  scale: 2,
+                                  color: state.data.readAt.isNotEmpty
+                                      ? blue
+                                      : null,
+                                ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              Text(
+                                state.data.image != ''
                                     ? '\t📷 Image'
-                                    : state.data.message),
-                            style: mediumTS.copyWith(
-                              fontSize: 15,
-                              color: Colors.grey,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                                    : state.data.message,
+                                style: mediumTS.copyWith(
+                                  fontSize: 15,
+                                  color: Colors.grey,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           );
                         }
                         return const Text('');

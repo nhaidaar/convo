@@ -70,14 +70,12 @@ class ProfilePage extends StatelessWidget {
                     height: 40,
                   ),
                   ListTile(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        PageTransition(
-                          child: EditProfilePage(user: state.model),
-                          type: PageTransitionType.rightToLeft,
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.of(context).push(
+                      PageTransition(
+                        child: EditProfilePage(user: state.model),
+                        type: PageTransitionType.rightToLeft,
+                      ),
+                    ),
                     leading: const ImageIcon(
                       AssetImage('assets/icons/edit.png'),
                     ),
@@ -91,53 +89,27 @@ class ProfilePage extends StatelessWidget {
                     thickness: 1,
                   ),
                   ListTile(
+                    onTap: () => Navigator.of(context).push(
+                      PageTransition(
+                        child: EditProfilePage(user: state.model),
+                        type: PageTransitionType.rightToLeft,
+                      ),
+                    ),
+                    leading: const ImageIcon(
+                      AssetImage('assets/icons/edit.png'),
+                    ),
+                    title: Text(
+                      'Change Password',
+                      style: mediumTS.copyWith(fontSize: 18),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                  ),
+                  const Divider(
+                    thickness: 1,
+                  ),
+                  ListTile(
                     onTap: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              title: Text(
-                                'Are you sure to logout?',
-                                style: semiboldTS,
-                                textAlign: TextAlign.center,
-                              ),
-                              titlePadding:
-                                  const EdgeInsets.fromLTRB(30, 30, 30, 10),
-                              actions: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: CustomButton(
-                                        action: () => Navigator.pop(context),
-                                        title: 'Nevermind',
-                                        invert: true,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 16,
-                                    ),
-                                    Expanded(
-                                      child: CustomButton(
-                                        action: () async {
-                                          await UserService()
-                                              .updateOnlineStatus(false);
-                                          // ignore: use_build_context_synchronously
-                                          context
-                                              .read<AuthBloc>()
-                                              .add(SignOutEvent());
-                                        },
-                                        title: 'Confirm',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                              actionsPadding: const EdgeInsets.all(20),
-                            );
-                          });
+                      handleLogout(context);
                     },
                     leading: const ImageIcon(
                       AssetImage('assets/icons/logout.png'),
@@ -162,5 +134,50 @@ class ProfilePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void handleLogout(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            title: Text(
+              'Are you sure to logout?',
+              style: semiboldTS,
+              textAlign: TextAlign.center,
+            ),
+            titlePadding: const EdgeInsets.fromLTRB(30, 30, 30, 10),
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      action: () => Navigator.pop(context),
+                      title: 'Nevermind',
+                      invert: true,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: CustomButton(
+                      action: () async {
+                        await UserService().updateOnlineStatus(false);
+                        // ignore: use_build_context_synchronously
+                        context.read<AuthBloc>().add(SignOutEvent());
+                      },
+                      title: 'Confirm',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            actionsPadding: const EdgeInsets.all(20),
+          );
+        });
   }
 }

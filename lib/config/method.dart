@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:another_flushbar/flushbar.dart';
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 void showSnackbar(BuildContext context, String message) {
   Flushbar(
@@ -31,6 +35,14 @@ Future<XFile?> pickImage() async {
   return image;
 }
 
+Future<XFile?> pickCamera() async {
+  final image = await ImagePicker().pickImage(
+    source: ImageSource.camera,
+    imageQuality: 90,
+  );
+  return image;
+}
+
 Future<List<XFile>> pickMultiImage() async {
   final image = await ImagePicker().pickMultiImage(imageQuality: 80);
   return image;
@@ -52,9 +64,16 @@ Future<CroppedFile?> cropImage(XFile image) async {
   return cropped;
 }
 
+Future<void> saveImage(String url) async {
+  final response = await http.get(Uri.parse(url));
+  await ImageGallerySaver.saveImage(
+    Uint8List.fromList(response.bodyBytes),
+    quality: 90,
+  );
+}
+
 String formatTimeForLastMessage(String time) {
   final int i = int.tryParse(time) ?? -1;
-  //if time is not available then return below statement
   if (i == -1) return '';
 
   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(i);
@@ -74,7 +93,6 @@ String formatTimeForLastMessage(String time) {
 
 String formatTimeForChat(String time) {
   final int i = int.tryParse(time) ?? -1;
-  //if time is not available then return below statement
   if (i == -1) return '';
 
   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(i);
@@ -102,7 +120,6 @@ String getLastActiveTime({
   required String lastActive,
 }) {
   final int i = int.tryParse(lastActive) ?? -1;
-  //if time is not available then return below statement
   if (i == -1) return 'Last seen not available';
 
   DateTime time = DateTime.fromMillisecondsSinceEpoch(i);

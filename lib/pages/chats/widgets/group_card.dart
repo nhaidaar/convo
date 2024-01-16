@@ -88,17 +88,36 @@ class _GroupCardState extends State<GroupCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         (state is GetLastMessageSuccess)
-                            ? Text(
-                                (state.data.sendBy == user!.uid ? 'Me: ' : '') +
-                                    (state.data.image != ''
-                                        ? '\t📷 Image'
-                                        : state.data.message),
-                                style: mediumTS.copyWith(
-                                  fontSize: 15,
-                                  color: Colors.grey,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                            ? Row(
+                                children: [
+                                  if (state.data.message.isNotEmpty ||
+                                      state.data.image.isNotEmpty)
+                                    Image.asset(
+                                      'assets/icons/read.png',
+                                      scale: 2,
+                                      color: state.data.readAt.length ==
+                                              widget.model.members!.length
+                                          ? blue
+                                          : null,
+                                    ),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    (state.data.sendBy == user!.uid
+                                            ? 'Me: '
+                                            : '') +
+                                        (state.data.image != ''
+                                            ? '\t📷 Image'
+                                            : state.data.message),
+                                    style: mediumTS.copyWith(
+                                      fontSize: 15,
+                                      color: Colors.grey,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               )
                             : const Text(''),
                       ],

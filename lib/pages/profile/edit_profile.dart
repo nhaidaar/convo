@@ -85,13 +85,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
             }
           },
           builder: (context, state) {
-            if (state is UserLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(color: blue),
-                ),
-              );
-            }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -221,29 +214,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(30),
-                  child: CustomButton(
-                    title: 'Update',
-                    disabled: areFieldsEmpty,
-                    action: () {
-                      if (image != null) {
-                        context.read<UserBloc>().add(
-                              UploadToStorageEvent(
-                                uid: widget.user.uid.toString(),
-                                file: image!,
-                              ),
-                            );
-                      } else {
-                        context.read<UserBloc>().add(
-                              UpdateUserDataEvent(
-                                widget.user.copyWith(
-                                  displayName: displayNameController.text,
-                                  username: usernameController.text,
-                                ),
-                              ),
-                            );
-                      }
-                    },
-                  ),
+                  child: state is UserLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Update',
+                          disabled: areFieldsEmpty,
+                          action: () {
+                            if (image != null) {
+                              context.read<UserBloc>().add(
+                                    UploadToStorageEvent(
+                                      uid: widget.user.uid.toString(),
+                                      file: image!,
+                                    ),
+                                  );
+                            } else {
+                              context.read<UserBloc>().add(
+                                    UpdateUserDataEvent(
+                                      widget.user.copyWith(
+                                        displayName: displayNameController.text,
+                                        username: usernameController.text,
+                                      ),
+                                    ),
+                                  );
+                            }
+                          },
+                        ),
                 ),
               ),
             );

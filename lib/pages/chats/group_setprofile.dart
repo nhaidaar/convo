@@ -158,33 +158,35 @@ class _CreateGroupNextState extends State<CreateGroupNext> {
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(30),
-                  child: CustomButton(
-                    title: 'Create Group',
-                    disabled: isTitleEmpty || image == null,
-                    action: () async {
-                      if (!isTitleEmpty && image != null) {
-                        List<String> membersUid = [currentUser!.uid];
+                  child: state is ChatLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Create Group',
+                          disabled: isTitleEmpty || image == null,
+                          action: () async {
+                            if (!isTitleEmpty && image != null) {
+                              List<String> membersUid = [currentUser!.uid];
 
-                        for (UserModel member in widget.members) {
-                          if (member.uid != null) {
-                            membersUid.add(member.uid.toString());
-                          }
-                        }
+                              for (UserModel member in widget.members) {
+                                if (member.uid != null) {
+                                  membersUid.add(member.uid.toString());
+                                }
+                              }
 
-                        final groupRoom = GroupRoomModel(
-                          roomId: '',
-                          admin: currentUser!.uid,
-                          members: membersUid,
-                          title: titleController.text,
-                          groupPicture: '',
-                        );
+                              final groupRoom = GroupRoomModel(
+                                roomId: '',
+                                admin: currentUser!.uid,
+                                members: membersUid,
+                                title: titleController.text,
+                                groupPicture: '',
+                              );
 
-                        BlocProvider.of<ChatBloc>(context).add(
-                          MakeGroupRoomEvent(groupRoom, image!),
-                        );
-                      }
-                    },
-                  ),
+                              BlocProvider.of<ChatBloc>(context).add(
+                                MakeGroupRoomEvent(groupRoom, image!),
+                              );
+                            }
+                          },
+                        ),
                 ),
               ),
             );

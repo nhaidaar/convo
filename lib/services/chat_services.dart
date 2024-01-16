@@ -94,7 +94,8 @@ class ChatService {
     required String name,
     required File image,
   }) async {
-    final storageRef = _storage.ref().child('user/image_sent/$uid/$name.jpg');
+    final storageRef =
+        _storage.ref().child('user/image_sent/$uid/Convo_$name.jpg');
     final uploadTask = storageRef.putFile(image);
 
     final snapshot = await uploadTask;
@@ -182,7 +183,8 @@ class ChatService {
   }) async {
     for (String pushToken in pushTokens) {
       try {
-        const fcmApi = 'DROP YOUR FCM API KEY HERE';
+        const fcmApi =
+            'AAAAgliY-r8:APA91bGK8DTf7Krhocz_qoMFG7pj5vEgz5S8wAx43n4Cfh3a8Nq_k7cS6_71ED7m9veaspmJJXSyIQynKWoPFIcnAbVcrvXieV5rSv1HWKu8el4KItM7zNUnpVxxp4tVzcFk6Pz-7hbv';
         final body = {
           "to": pushToken,
           "notification": {
@@ -244,14 +246,15 @@ class ChatService {
       List<ChatRoomModel> chatRooms = [];
 
       for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
-        final data = ChatRoomModel.fromMap(doc.data() as Map<String, dynamic>);
+        final data = doc.data() as Map<String, dynamic>;
 
-        if (data.members!.length == 2) {
-          List<String> members = List<String>.from(data.members!);
+        if (data['title'] == null) {
+          final room = ChatRoomModel.fromMap(data);
+          List<String> members = List<String>.from(room.members!);
           members.remove(_user!.uid);
 
           ChatRoomModel chatRoom = ChatRoomModel(
-            roomId: data.roomId,
+            roomId: room.roomId,
             members: members,
           );
 
@@ -271,17 +274,18 @@ class ChatService {
       List<GroupRoomModel> groupRooms = [];
 
       for (QueryDocumentSnapshot doc in chatRoomSnapshot.docs) {
-        final data = GroupRoomModel.fromMap(doc.data() as Map<String, dynamic>);
+        final data = doc.data() as Map<String, dynamic>;
 
-        if (data.members!.length > 2) {
-          List<String> members = List<String>.from(data.members!);
+        if (data['title'] != null) {
+          final room = GroupRoomModel.fromMap(data);
+          List<String> members = List<String>.from(room.members!);
           members.remove(_user!.uid);
 
           GroupRoomModel groupRoom = GroupRoomModel(
-            roomId: data.roomId,
+            roomId: room.roomId,
             members: members,
-            title: data.title,
-            groupPicture: data.groupPicture,
+            title: room.title,
+            groupPicture: room.groupPicture,
           );
 
           groupRooms.add(groupRoom);
