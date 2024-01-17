@@ -29,19 +29,78 @@ class CustomButton extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
-            color: buttonColor ?? (invert ? Colors.white : blue),
+            color: invert ? Colors.white : (buttonColor ?? blue),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: buttonColor ?? (invert ? blue : Colors.transparent),
+              color: invert ? (buttonColor ?? blue) : Colors.transparent,
             ),
           ),
           child: Text(
             title,
             style: semiboldTS.copyWith(
-              color: invert ? blue : Colors.white,
+              color: invert ? (buttonColor ?? blue) : Colors.white,
               fontSize: titleSize,
             ),
             textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ButtonWithIcon extends StatelessWidget {
+  final String iconUrl;
+  final String title;
+  final bool disabled;
+  final VoidCallback? action;
+  final Color? buttonColor;
+  final Color? textColor;
+  const ButtonWithIcon(
+      {super.key,
+      required this.iconUrl,
+      required this.title,
+      this.action,
+      this.disabled = false,
+      this.buttonColor,
+      this.textColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: action,
+      child: Opacity(
+        opacity: disabled ? 0.4 : 1,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: buttonColor ?? blue,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: buttonColor ?? Colors.transparent,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ImageIcon(
+                AssetImage(iconUrl),
+                size: 22,
+                color: textColor ?? Colors.white,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                title,
+                style: semiboldTS.copyWith(
+                  color: textColor ?? Colors.white,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),

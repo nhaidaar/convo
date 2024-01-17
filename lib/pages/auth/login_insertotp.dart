@@ -86,15 +86,6 @@ class _LoginOtpState extends State<LoginOtp> {
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if (state is AuthLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    color: blue,
-                  ),
-                ),
-              );
-            }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -151,16 +142,18 @@ class _LoginOtpState extends State<LoginOtp> {
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: CustomButton(
-                    title: 'Continue',
-                    disabled: isOtpEmpty,
-                    action: () {
-                      if (!isOtpEmpty) {
-                        context.read<AuthBloc>().add(PhoneVerifyOtpEvent(
-                            otpController.text, widget.verificationId));
-                      }
-                    },
-                  ),
+                  child: state is AuthLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Continue',
+                          disabled: isOtpEmpty,
+                          action: () {
+                            if (!isOtpEmpty) {
+                              context.read<AuthBloc>().add(PhoneVerifyOtpEvent(
+                                  otpController.text, widget.verificationId));
+                            }
+                          },
+                        ),
                 ),
               ),
             );

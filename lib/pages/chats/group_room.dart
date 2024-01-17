@@ -6,6 +6,7 @@ import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/grouproom_model.dart';
+import 'package:convo/pages/chats/member_group.dart';
 import 'package:convo/pages/chats/widgets/message_card.dart';
 import 'package:convo/pages/home.dart';
 import 'package:convo/services/chat_services.dart';
@@ -65,62 +66,75 @@ class _GroupRoomState extends State<GroupRoom> {
                 },
                 icon: const Icon(Icons.arrow_back_ios_new),
               ),
-              title: SizedBox(
-                height: 50,
-                child: Row(
-                  children: [
-                    widget.model.groupPicture.toString() != ''
-                        ? CachedNetworkImage(
-                            imageUrl: widget.model.groupPicture.toString(),
-                            imageBuilder: (context, imageProvider) {
-                              return CircleAvatar(
-                                radius: 24,
-                                backgroundColor: Colors.transparent,
-                                foregroundImage: imageProvider,
-                              );
-                            },
-                            placeholder: (context, url) {
-                              return const CircleAvatar(
-                                radius: 24,
-                                backgroundColor: Colors.transparent,
-                                backgroundImage: AssetImage(
-                                  'assets/images/profile.jpg',
-                                ),
-                              );
-                            },
-                          )
-                        : const CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage: AssetImage(
-                              'assets/images/profile.jpg',
-                            ),
-                          ),
-                    const SizedBox(
-                      width: 16,
+              title: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageTransition(
+                      child: GroupMember(model: widget.model),
+                      type: PageTransitionType.fade,
                     ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(
-                            widget.model.title.toString(),
-                            style: semiboldTS.copyWith(fontSize: 18),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            '${widget.model.members!.length + 1} members',
-                            style: mediumTS.copyWith(
-                              fontSize: 14,
-                              color: Colors.grey,
+                  );
+                },
+                child: SizedBox(
+                  height: 50,
+                  child: Row(
+                    children: [
+                      widget.model.groupPicture.toString() != ''
+                          ? Hero(
+                              tag: widget.model.groupPicture.toString(),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.model.groupPicture.toString(),
+                                imageBuilder: (context, imageProvider) {
+                                  return CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Colors.transparent,
+                                    foregroundImage: imageProvider,
+                                  );
+                                },
+                                placeholder: (context, url) {
+                                  return const CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Colors.transparent,
+                                    backgroundImage: AssetImage(
+                                      'assets/images/profile.jpg',
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : const CircleAvatar(
+                              radius: 24,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: AssetImage(
+                                'assets/images/profile.jpg',
+                              ),
                             ),
-                          ),
-                        ],
+                      const SizedBox(
+                        width: 16,
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              widget.model.title.toString(),
+                              style: semiboldTS.copyWith(fontSize: 18),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${widget.model.members!.length + 1} members',
+                              style: mediumTS.copyWith(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -230,7 +244,11 @@ class _GroupRoomState extends State<GroupRoom> {
                           width: 16,
                         ),
                         GestureDetector(
-                          onTap: handleSendMessage,
+                          onTap: () {
+                            if (messageController.text.isNotEmpty) {
+                              handleSendMessage();
+                            }
+                          },
                           child: Image.asset(
                             'assets/icons/send.png',
                             scale: 2,

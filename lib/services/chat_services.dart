@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:convo/config/value.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
 import 'package:convo/models/grouproom_model.dart';
@@ -68,6 +69,7 @@ class ChatService {
 
       return GroupRoomModel(
         roomId: roomId,
+        admin: groupRoom.admin,
         members: groupRoom.members,
         title: groupRoom.title,
         groupPicture: groupPicture,
@@ -183,8 +185,6 @@ class ChatService {
   }) async {
     for (String pushToken in pushTokens) {
       try {
-        const fcmApi =
-            'AAAAgliY-r8:APA91bGK8DTf7Krhocz_qoMFG7pj5vEgz5S8wAx43n4Cfh3a8Nq_k7cS6_71ED7m9veaspmJJXSyIQynKWoPFIcnAbVcrvXieV5rSv1HWKu8el4KItM7zNUnpVxxp4tVzcFk6Pz-7hbv';
         final body = {
           "to": pushToken,
           "notification": {
@@ -205,6 +205,35 @@ class ChatService {
       } catch (e) {
         rethrow;
       }
+    }
+  }
+
+  Future<void> deleteChatRoom(String roomId) async {
+    await _firestore.collection('chats').doc(roomId).delete();
+  }
+
+  Future<void> leaveGroup(String roomId) async {
+    DocumentReference ref = _firestore.collection('chats').doc(roomId);
+    DocumentSnapshot group = await ref.get();
+
+    GroupRoomModel groupRoomModel =
+        GroupRoomModel.fromMap(group.data() as Map<String, dynamic>);
+
+    final newMemberList = List<String>.from(groupRoomModel.members!);
+    newMemberList.remove(_user!.uid);
+
+    if (newMemberList.isEmpty) {
+      ref.delete();
+    } else {
+      ref.update({
+        'members': newMemberList,
+      }).then((value) {
+        if (groupRoomModel.admin == _user!.uid) {
+          ref.update({
+            'admin': newMemberList[0],
+          });
+        }
+      });
     }
   }
 
@@ -283,6 +312,7 @@ class ChatService {
 
           GroupRoomModel groupRoom = GroupRoomModel(
             roomId: room.roomId,
+            admin: room.admin,
             members: members,
             title: room.title,
             groupPicture: room.groupPicture,
@@ -378,5 +408,37 @@ class ChatService {
 
       return unreadCount;
     });
+  }
+
+  Stream<List<GroupRoomModel>> streamSameGroup(String uid) {
+    return _firestore
+        .collection('chats')
+        .where('members', arrayContainsAny: [uid, _user!.uid])
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<GroupRoomModel> groupRooms = [];
+
+          for (QueryDocumentSnapshot doc in snapshot.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            if (data['title'] != null &&
+                data['members'].contains(uid) &&
+                data['members'].contains(_user!.uid)) {
+              final room = GroupRoomModel.fromMap(data);
+              List<String> members = List<String>.from(room.members!);
+              members.remove(_user!.uid);
+
+              GroupRoomModel groupRoom = GroupRoomModel(
+                roomId: room.roomId,
+                admin: room.admin,
+                members: members,
+                title: room.title,
+                groupPicture: room.groupPicture,
+              );
+
+              groupRooms.add(groupRoom);
+            }
+          }
+          return groupRooms;
+        });
   }
 }

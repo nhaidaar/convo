@@ -7,6 +7,7 @@ import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/models/chatroom_model.dart';
+import 'package:convo/pages/chats/member_chat.dart';
 import 'package:convo/pages/chats/widgets/message_card.dart';
 import 'package:convo/pages/home.dart';
 import 'package:convo/services/chat_services.dart';
@@ -69,77 +70,93 @@ class _ChatRoomState extends State<ChatRoom> {
                   },
                   icon: const Icon(Icons.arrow_back_ios_new),
                 ),
-                title: BlocBuilder<UserBloc, UserState>(
-                  builder: (context, state) {
-                    return SizedBox(
-                      height: 50,
-                      child: Row(
-                        children: [
-                          (state is UserStreamDataSuccess)
-                              ? CachedNetworkImage(
-                                  imageUrl: state.model.profilePicture!,
-                                  imageBuilder: (context, imageProvider) {
-                                    return CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: Colors.transparent,
-                                      foregroundImage: imageProvider,
-                                    );
-                                  },
-                                  placeholder: (context, url) {
-                                    return const CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: Colors.transparent,
-                                      backgroundImage: AssetImage(
-                                        'assets/images/profile.jpg',
-                                      ),
-                                    );
-                                  },
-                                )
-                              : const CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: Colors.transparent,
-                                  backgroundImage: AssetImage(
-                                    'assets/images/profile.jpg',
-                                  ),
-                                ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  (state is UserStreamDataSuccess)
-                                      ? state.model.displayName!
-                                      : '',
-                                  style: semiboldTS.copyWith(fontSize: 18),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  (state is UserStreamDataSuccess)
-                                      ? state.model.isOnline!
-                                          ? 'Online'
-                                          : getLastActiveTime(
-                                              context: context,
-                                              lastActive: state.model.lastActive
-                                                  .toString(),
-                                            )
-                                      : '',
-                                  style: mediumTS.copyWith(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                title: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      PageTransition(
+                        child: ChatMember(model: widget.model),
+                        type: PageTransitionType.fade,
                       ),
                     );
                   },
+                  child: BlocBuilder<UserBloc, UserState>(
+                    builder: (context, state) {
+                      return SizedBox(
+                        height: 50,
+                        child: Row(
+                          children: [
+                            (state is UserStreamDataSuccess)
+                                ? Hero(
+                                    tag: state.model.profilePicture.toString(),
+                                    child: CachedNetworkImage(
+                                      imageUrl:
+                                          state.model.profilePicture.toString(),
+                                      imageBuilder: (context, imageProvider) {
+                                        return CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.transparent,
+                                          foregroundImage: imageProvider,
+                                        );
+                                      },
+                                      placeholder: (context, url) {
+                                        return const CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.transparent,
+                                          backgroundImage: AssetImage(
+                                            'assets/images/profile.jpg',
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : const CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: Colors.transparent,
+                                    backgroundImage: AssetImage(
+                                      'assets/images/profile.jpg',
+                                    ),
+                                  ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text(
+                                    (state is UserStreamDataSuccess)
+                                        ? state.model.displayName!
+                                        : '',
+                                    style: semiboldTS.copyWith(fontSize: 18),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    (state is UserStreamDataSuccess)
+                                        ? state.model.isOnline!
+                                            ? 'Online'
+                                            : getLastActiveTime(
+                                                context: context,
+                                                lastActive: state
+                                                    .model.lastActive
+                                                    .toString(),
+                                              )
+                                        : '',
+                                    style: mediumTS.copyWith(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 actions: [
                   Padding(

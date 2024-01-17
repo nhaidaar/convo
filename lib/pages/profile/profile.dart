@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/blocs/auth/auth_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/theme.dart';
+import 'package:convo/pages/profile/change_password.dart';
 import 'package:convo/pages/profile/edit_profile.dart';
 import 'package:convo/services/user_services.dart';
 import 'package:convo/widgets/custom_button.dart';
@@ -17,9 +18,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => UserBloc()
-        ..add(
-          GetUserDataEvent(FirebaseAuth.instance.currentUser!.uid),
-        ),
+        ..add(GetUserDataEvent(FirebaseAuth.instance.currentUser!.uid)),
       child: BlocBuilder<UserBloc, UserState>(
         builder: (context, state) {
           if (state is UserGetDataSuccess) {
@@ -88,25 +87,30 @@ class ProfilePage extends StatelessWidget {
                   const Divider(
                     thickness: 1,
                   ),
-                  ListTile(
-                    onTap: () => Navigator.of(context).push(
-                      PageTransition(
-                        child: EditProfilePage(user: state.model),
-                        type: PageTransitionType.rightToLeft,
-                      ),
+                  if (!state.model.credentials!.startsWith('+'))
+                    Column(
+                      children: [
+                        ListTile(
+                          onTap: () => Navigator.of(context).push(
+                            PageTransition(
+                              child: const ChangePasswordPage(),
+                              type: PageTransitionType.rightToLeft,
+                            ),
+                          ),
+                          leading: const ImageIcon(
+                            AssetImage('assets/icons/change_password.png'),
+                          ),
+                          title: Text(
+                            'Change Password',
+                            style: mediumTS.copyWith(fontSize: 18),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                        ),
+                        const Divider(
+                          thickness: 1,
+                        ),
+                      ],
                     ),
-                    leading: const ImageIcon(
-                      AssetImage('assets/icons/edit.png'),
-                    ),
-                    title: Text(
-                      'Change Password',
-                      style: mediumTS.copyWith(fontSize: 18),
-                    ),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                  ),
-                  const Divider(
-                    thickness: 1,
-                  ),
                   ListTile(
                     onTap: () {
                       handleLogout(context);

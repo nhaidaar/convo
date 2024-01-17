@@ -9,6 +9,8 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository auth;
   AuthBloc({required this.auth}) : super(UnAuthenticated()) {
+    final user = FirebaseAuth.instance.currentUser;
+
     // When user clicks on send otp button then this event will be fired
     on<PhoneSendOtpEvent>((event, emit) async {
       emit(AuthLoading());
@@ -106,6 +108,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthForgotPasswordSent());
       } catch (e) {
         emit(AuthError(e.toString()));
+      }
+    });
+
+    on<ChangePasswordEvent>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        await user!.reauthenticateWithCredential(
+          EmailAuthProvider.credential(
+            email: event.email,
+            password: event.currentPassword,
+          ),
+        );
+        await user.updatePassword(event.newPassword);
+        emit(AuthSuccess());
+      } on FirebaseAuthException catch (e) {
+        emit(AuthError(e.code.toString()));
       }
     });
   }

@@ -138,24 +138,28 @@ class MessageIn extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (group != null)
-                    FutureBuilder(
-                      future: UserService().getUserData(model.sendBy),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return Text(
-                            snapshot.data!.displayName.toString(),
-                            style: semiboldTS.copyWith(color: blue),
-                          );
-                        }
-                        return Text(
-                          'Member',
-                          style: semiboldTS.copyWith(color: blue),
-                        );
-                      },
+                    Column(
+                      children: [
+                        FutureBuilder(
+                          future: UserService().getUserData(model.sendBy),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              return Text(
+                                snapshot.data!.displayName.toString(),
+                                style: semiboldTS.copyWith(color: blue),
+                              );
+                            }
+                            return Text(
+                              'Member',
+                              style: semiboldTS.copyWith(color: blue),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 6,
+                        ),
+                      ],
                     ),
-                  const SizedBox(
-                    height: 6,
-                  ),
                   model.image != ''
                       ? GestureDetector(
                           onTap: () => clickImage(context, model),
@@ -314,23 +318,21 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
               const SizedBox(
                 height: 30,
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomButton(
-                      title: 'Delete for Me',
-                      titleSize: 14,
-                      padding: 12,
-                      invert: true,
-                      action: () {
-                        ChatService().deleteMessageForMe(model);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                  if (!received)
-                    Row(
+              !received
+                  ? Row(
                       children: [
+                        Expanded(
+                          child: CustomButton(
+                            title: 'Delete for Me',
+                            titleSize: 14,
+                            padding: 12,
+                            invert: true,
+                            action: () {
+                              ChatService().deleteMessageForMe(model);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
                         const SizedBox(
                           width: 10,
                         ),
@@ -346,9 +348,17 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
                           ),
                         ),
                       ],
+                    )
+                  : CustomButton(
+                      title: 'Delete for Me',
+                      titleSize: 14,
+                      padding: 12,
+                      invert: true,
+                      action: () {
+                        ChatService().deleteMessageForMe(model);
+                        Navigator.pop(context);
+                      },
                     ),
-                ],
-              )
             ],
           ),
         );

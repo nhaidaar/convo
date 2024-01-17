@@ -4,6 +4,7 @@ import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/pages/chats/group_room.dart';
+import 'package:convo/services/user_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,33 +91,57 @@ class _GroupCardState extends State<GroupCard> {
                         (state is GetLastMessageSuccess)
                             ? Row(
                                 children: [
-                                  if (state.data.message.isNotEmpty ||
-                                      state.data.image.isNotEmpty)
-                                    Image.asset(
-                                      'assets/icons/read.png',
-                                      scale: 2,
-                                      color: state.data.readAt.length ==
-                                              widget.model.members!.length
-                                          ? blue
-                                          : null,
-                                    ),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
-                                  Text(
-                                    (state.data.sendBy == user!.uid
-                                            ? 'Me: '
-                                            : '') +
-                                        (state.data.image != ''
-                                            ? '\t📷 Image'
-                                            : state.data.message),
-                                    style: mediumTS.copyWith(
-                                      fontSize: 15,
-                                      color: Colors.grey,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  FutureBuilder(
+                                      future: UserService()
+                                          .getUserData(state.data.sendBy),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Row(
+                                            children: [
+                                              if (state.data.sendBy ==
+                                                      user!.uid &&
+                                                  (state.data.message
+                                                          .isNotEmpty ||
+                                                      state.data.image
+                                                          .isNotEmpty))
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/icons/read.png',
+                                                      scale: 2,
+                                                      color: state.data.readAt
+                                                                  .length ==
+                                                              widget
+                                                                  .model
+                                                                  .members!
+                                                                  .length
+                                                          ? blue
+                                                          : null,
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 4,
+                                                    ),
+                                                  ],
+                                                ),
+                                              Text(
+                                                (state.data.sendBy == user!.uid
+                                                        ? 'Me: '
+                                                        : '${snapshot.data!.displayName}: ') +
+                                                    (state.data.image != ''
+                                                        ? '\t📷 Image'
+                                                        : state.data.message),
+                                                style: mediumTS.copyWith(
+                                                  fontSize: 15,
+                                                  color: Colors.grey,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                        return const Text('');
+                                      }),
                                 ],
                               )
                             : const Text(''),

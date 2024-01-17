@@ -112,16 +112,20 @@ class _ChatCardState extends State<ChatCard> {
                             children: [
                               if (state.data.message.isNotEmpty ||
                                   state.data.image.isNotEmpty)
-                                Image.asset(
-                                  'assets/icons/read.png',
-                                  scale: 2,
-                                  color: state.data.readAt.isNotEmpty
-                                      ? blue
-                                      : null,
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/read.png',
+                                      scale: 2,
+                                      color: state.data.readAt.isNotEmpty
+                                          ? blue
+                                          : null,
+                                    ),
+                                    const SizedBox(
+                                      width: 4,
+                                    ),
+                                  ],
                                 ),
-                              const SizedBox(
-                                width: 4,
-                              ),
                               Text(
                                 state.data.image != ''
                                     ? '\t📷 Image'

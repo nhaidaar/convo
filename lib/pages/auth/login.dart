@@ -81,15 +81,6 @@ class _LoginPageState extends State<LoginPage> {
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if (state is AuthLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    color: blue,
-                  ),
-                ),
-              );
-            }
             return Scaffold(
               body: ListView(
                 padding: const EdgeInsets.all(30),
@@ -128,18 +119,21 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  CustomButton(
-                    title: 'Continue with Phone',
-                    disabled: isPhoneEmpty,
-                    action: () {
-                      final finalNumber = countryCode + phoneController.text;
-                      if (!isPhoneEmpty) {
-                        context
-                            .read<AuthBloc>()
-                            .add(PhoneSendOtpEvent(finalNumber));
-                      }
-                    },
-                  ),
+                  state is AuthLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Continue with Phone',
+                          disabled: isPhoneEmpty,
+                          action: () {
+                            final finalNumber =
+                                countryCode + phoneController.text;
+                            if (!isPhoneEmpty) {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(PhoneSendOtpEvent(finalNumber));
+                            }
+                          },
+                        ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 30),
                     child: Row(

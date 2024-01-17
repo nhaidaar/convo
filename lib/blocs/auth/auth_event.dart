@@ -63,3 +63,17 @@ class ForgotPasswordEvent extends AuthEvent {
   final String email;
   ForgotPasswordEvent(this.email);
 }
+
+class ChangePasswordEvent extends AuthEvent {
+  final String email;
+  final String currentPassword;
+  final String newPassword;
+  ChangePasswordEvent({
+    required this.email,
+    required this.currentPassword,
+    required this.newPassword,
+  });
+
+  @override
+  List<Object> get props => [email, currentPassword, newPassword];
+}

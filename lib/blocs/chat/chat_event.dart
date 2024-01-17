@@ -11,6 +11,14 @@ class GetChatListEvent extends ChatEvent {}
 
 class GetGroupListEvent extends ChatEvent {}
 
+class GetSameGroupListEvent extends ChatEvent {
+  final String uid;
+  const GetSameGroupListEvent(this.uid);
+
+  @override
+  List<Object> get props => [uid];
+}
+
 class GetAllMessageEvent extends ChatEvent {
   final String roomId;
   const GetAllMessageEvent(this.roomId);
@@ -90,4 +98,20 @@ class SaveImageEvent extends ChatEvent {
 
   @override
   List<Object> get props => [url];
+}
+
+class DeleteChatEvent extends ChatEvent {
+  final String roomId;
+  const DeleteChatEvent(this.roomId);
+
+  @override
+  List<Object> get props => [roomId];
+}
+
+class LeaveGroupEvent extends ChatEvent {
+  final String roomId;
+  const LeaveGroupEvent(this.roomId);
+
+  @override
+  List<Object> get props => [roomId];
 }

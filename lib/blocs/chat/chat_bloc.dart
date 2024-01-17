@@ -34,6 +34,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         );
       },
     );
+    on<GetSameGroupListEvent>(
+      (event, emit) async {
+        await emit.onEach(
+          _chatService.streamSameGroup(event.uid),
+          onData: (data) => emit(GetGroupListSuccess(data)),
+          onError: (error, stackTrace) => emit(ChatError(error.toString())),
+        );
+      },
+    );
     on<GetAllMessageEvent>(
       (event, emit) async {
         await emit.onEach(
@@ -117,6 +126,26 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(ChatLoading());
       try {
         await saveImage(event.url);
+        emit(ChatSuccess());
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<DeleteChatEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        await _chatService.deleteChatRoom(event.roomId);
+        emit(ChatSuccess());
+      } catch (e) {
+        emit(ChatError(e.toString()));
+      }
+    });
+
+    on<LeaveGroupEvent>((event, emit) async {
+      emit(ChatLoading());
+      try {
+        await _chatService.leaveGroup(event.roomId);
         emit(ChatSuccess());
       } catch (e) {
         emit(ChatError(e.toString()));
