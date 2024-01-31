@@ -7,14 +7,14 @@ class CustomButton extends StatelessWidget {
   final double padding;
   final bool invert;
   final bool disabled;
-  final VoidCallback? action;
+  final VoidCallback? onTap;
   final Color? buttonColor;
   const CustomButton(
       {super.key,
       required this.title,
       this.titleSize = 16,
       this.padding = 16,
-      this.action,
+      this.onTap,
       this.invert = false,
       this.disabled = false,
       this.buttonColor});
@@ -22,7 +22,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: action,
+      onTap: onTap,
       child: Opacity(
         opacity: disabled ? 0.4 : 1,
         child: Container(
@@ -53,14 +53,14 @@ class ButtonWithIcon extends StatelessWidget {
   final String iconUrl;
   final String title;
   final bool disabled;
-  final VoidCallback? action;
+  final VoidCallback? onTap;
   final Color? buttonColor;
   final Color? textColor;
   const ButtonWithIcon(
       {super.key,
       required this.iconUrl,
       required this.title,
-      this.action,
+      this.onTap,
       this.disabled = false,
       this.buttonColor,
       this.textColor});
@@ -68,7 +68,7 @@ class ButtonWithIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: action,
+      onTap: onTap,
       child: Opacity(
         opacity: disabled ? 0.4 : 1,
         child: Container(
@@ -129,6 +129,31 @@ class LoadingButton extends StatelessWidget {
             color: Colors.white,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FloatingButton extends StatelessWidget {
+  final Icon icon;
+  final VoidCallback? onTap;
+  const FloatingButton({
+    super.key,
+    required this.icon,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: FloatingActionButton(
+        onPressed: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        backgroundColor: blue,
+        child: icon,
       ),
     );
   }

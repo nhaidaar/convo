@@ -2,14 +2,15 @@ import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
-import 'package:convo/pages/chats/chat_room.dart';
-import 'package:convo/pages/chats/widgets/search_card.dart';
-import 'package:convo/services/chat_services.dart';
+import 'package:convo/pages/chat/chat_room.dart';
+import 'package:convo/widgets/card_searchmember.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+
+import '../../../widgets/default_leading.dart';
 
 class SearchUser extends StatefulWidget {
   const SearchUser({super.key});
@@ -36,13 +37,14 @@ class _SearchUserState extends State<SearchUser> {
         child: BlocListener<ChatBloc, ChatState>(
           listener: (context, state) async {
             if (state is MakeChatRoomSuccess) {
-              Navigator.of(context).pushReplacement(
+              Navigator.of(context).push(
                 PageTransition(
                   child: ChatRoom(model: state.data),
                   type: PageTransitionType.rightToLeft,
                 ),
               );
             }
+
             if (state is ChatError) {
               showSnackbar(context, state.e);
             }
@@ -56,14 +58,10 @@ class _SearchUserState extends State<SearchUser> {
                     style: semiboldTS,
                   ),
                   centerTitle: true,
-                  leading: IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new),
-                  ),
+                  leading: const DefaultLeading(),
                 ),
                 body: ListView(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                   children: [
                     Text(
                       'Search by Username',
@@ -92,9 +90,7 @@ class _SearchUserState extends State<SearchUser> {
                       height: 30,
                     ),
                     Text(
-                      (state is UserSearchSuccess || state is UserLoading)
-                          ? 'Search Result'
-                          : '',
+                      (state is UserSearchSuccess || state is UserLoading) ? 'Search Result' : '',
                       style: mediumTS.copyWith(fontSize: 16),
                     ),
                     const SizedBox(
@@ -113,32 +109,16 @@ class _SearchUserState extends State<SearchUser> {
                             : Column(
                                 children: state.userList.map((user) {
                                   return SearchCard(
-                                      model: user,
-                                      action: () async {
-                                        await ChatService()
-                                            .isChatRoomExists(
-                                                myUid: currentUser!.uid,
-                                                friendUid: user.uid!)
-                                            .then((value) {
-                                          value == null
-                                              ? BlocProvider.of<ChatBloc>(
-                                                      context)
-                                                  .add(
-                                                  MakeChatRoomEvent(
-                                                    myUid: currentUser!.uid,
-                                                    friendUid:
-                                                        user.uid.toString(),
-                                                  ),
-                                                )
-                                              : Navigator.of(context).push(
-                                                  PageTransition(
-                                                      child: ChatRoom(
-                                                          model: value),
-                                                      type: PageTransitionType
-                                                          .rightToLeft),
-                                                );
-                                        });
-                                      });
+                                    model: user,
+                                    onTap: () {
+                                      BlocProvider.of<ChatBloc>(context).add(
+                                        MakeChatRoomEvent(
+                                          myUid: currentUser!.uid,
+                                          friendUid: user.uid.toString(),
+                                        ),
+                                      );
+                                    },
+                                  );
                                 }).toList(),
                               )
                         : (state is UserLoading)

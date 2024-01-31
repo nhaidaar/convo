@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../widgets/default_leading.dart';
+
 class LoginEmailPage extends StatefulWidget {
   const LoginEmailPage({super.key});
 
@@ -46,8 +48,7 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
 
   void updateFieldState() {
     setState(() {
-      areFieldsEmpty =
-          emailController.text.isEmpty || passwordController.text.isEmpty;
+      areFieldsEmpty = emailController.text.isEmpty || passwordController.text.isEmpty;
     });
   }
 
@@ -71,15 +72,6 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if (state is AuthLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    color: blue,
-                  ),
-                ),
-              );
-            }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -87,10 +79,7 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.all(30),
@@ -124,7 +113,7 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                     hintText: '******',
                     isPassword: true,
                     obscureText: passwordHidden,
-                    action: () {
+                    onTap: () {
                       setState(() {
                         passwordHidden = !passwordHidden;
                       });
@@ -151,20 +140,22 @@ class _LoginEmailPageState extends State<LoginEmailPage> {
                   const SizedBox(
                     height: 30,
                   ),
-                  CustomButton(
-                    title: 'Continue',
-                    disabled: areFieldsEmpty,
-                    action: () {
-                      if (!areFieldsEmpty) {
-                        context.read<AuthBloc>().add(
-                              EmailSignInEvent(
-                                emailController.text,
-                                passwordController.text,
-                              ),
-                            );
-                      }
-                    },
-                  ),
+                  state is AuthLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Continue',
+                          disabled: areFieldsEmpty,
+                          onTap: () {
+                            if (!areFieldsEmpty) {
+                              context.read<AuthBloc>().add(
+                                    EmailSignInEvent(
+                                      emailController.text,
+                                      passwordController.text,
+                                    ),
+                                  );
+                            }
+                          },
+                        ),
                 ],
               ),
               bottomNavigationBar: BottomAppBar(

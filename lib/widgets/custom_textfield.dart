@@ -9,7 +9,7 @@ class CustomFormField extends StatelessWidget {
   final bool isPassword;
   final bool enabled;
   final String? hintText;
-  final VoidCallback? action;
+  final VoidCallback? onTap;
   const CustomFormField({
     super.key,
     this.focusNode,
@@ -19,7 +19,7 @@ class CustomFormField extends StatelessWidget {
     this.isPassword = false,
     this.enabled = true,
     this.hintText,
-    this.action,
+    this.onTap,
   });
 
   @override
@@ -35,13 +35,11 @@ class CustomFormField extends StatelessWidget {
         filled: !enabled,
         suffixIcon: isPassword
             ? InkWell(
-                onTap: action,
+                onTap: onTap,
                 child: Ink(
                   child: ImageIcon(
                     AssetImage(
-                      !obscureText
-                          ? 'assets/icons/password_visible.png'
-                          : 'assets/icons/password_invisible.png',
+                      !obscureText ? 'assets/icons/password_visible.png' : 'assets/icons/password_invisible.png',
                     ),
                   ),
                 ),
@@ -124,13 +122,7 @@ class MessageField extends StatelessWidget {
   final FocusNode? focusNode;
   final VoidCallback? cameraOnTap;
   final VoidCallback? imageOnTap;
-  const MessageField(
-      {super.key,
-      this.onFieldSubmitted,
-      this.controller,
-      this.focusNode,
-      this.cameraOnTap,
-      this.imageOnTap});
+  const MessageField({super.key, this.onFieldSubmitted, this.controller, this.focusNode, this.cameraOnTap, this.imageOnTap});
 
   @override
   Widget build(BuildContext context) {

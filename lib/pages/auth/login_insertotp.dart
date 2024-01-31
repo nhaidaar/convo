@@ -15,11 +15,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pinput/pinput.dart';
 
+import '../../widgets/default_leading.dart';
+
 class LoginOtp extends StatefulWidget {
   final String phoneNumber;
   final String verificationId;
-  const LoginOtp(
-      {super.key, required this.verificationId, required this.phoneNumber});
+  const LoginOtp({super.key, required this.verificationId, required this.phoneNumber});
 
   @override
   State<LoginOtp> createState() => _LoginOtpState();
@@ -55,8 +56,9 @@ class _LoginOtpState extends State<LoginOtp> {
         listener: (context, state) async {
           if (state is AuthSuccess) {
             final user = FirebaseAuth.instance.currentUser;
-            final userExists = await UserService().isUserExists(user!.uid);
-            if (userExists) {
+            final userData = await UserService().getUserData(user!.uid);
+
+            if (userData != null) {
               Navigator.of(context).pushAndRemoveUntil(
                 PageTransition(
                   child: const Home(),
@@ -93,10 +95,7 @@ class _LoginOtpState extends State<LoginOtp> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.all(30),
@@ -125,8 +124,7 @@ class _LoginOtpState extends State<LoginOtp> {
                         children: [
                           TextSpan(
                               text: 'Resend',
-                              style: semiboldTS.copyWith(
-                                  fontSize: 15, color: blue),
+                              style: semiboldTS.copyWith(fontSize: 15, color: blue),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   showSnackbar(context, 'Currently disabled!');
@@ -147,10 +145,9 @@ class _LoginOtpState extends State<LoginOtp> {
                       : CustomButton(
                           title: 'Continue',
                           disabled: isOtpEmpty,
-                          action: () {
+                          onTap: () {
                             if (!isOtpEmpty) {
-                              context.read<AuthBloc>().add(PhoneVerifyOtpEvent(
-                                  otpController.text, widget.verificationId));
+                              context.read<AuthBloc>().add(PhoneVerifyOtpEvent(otpController.text, widget.verificationId));
                             }
                           },
                         ),

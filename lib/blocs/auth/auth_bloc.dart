@@ -2,6 +2,7 @@ import 'package:convo/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -98,6 +99,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignOutEvent>((event, emit) async {
       emit(AuthLoading());
       await auth.signOut();
+      ZegoUIKitPrebuiltCallInvitationService().uninit();
       emit(UnAuthenticated());
     });
 

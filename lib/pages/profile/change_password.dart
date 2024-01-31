@@ -8,6 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../widgets/default_leading.dart';
+
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
 
@@ -49,9 +51,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             if (state is AuthError) {
               showSnackbar(
                 context,
-                state.e == 'channel-error'
-                    ? 'Please insert your current password!'
-                    : state.e,
+                state.e == 'channel-error' ? 'Please insert your current password!' : state.e,
               );
             }
           },
@@ -63,10 +63,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.all(30),
@@ -88,10 +85,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           hintText: 'We need this to verify your password',
                           isPassword: true,
                           obscureText: !_currentPasswordVisible,
-                          action: () {
+                          onTap: () {
                             setState(() {
-                              _currentPasswordVisible =
-                                  !_currentPasswordVisible;
+                              _currentPasswordVisible = !_currentPasswordVisible;
                             });
                           },
                         ),
@@ -108,10 +104,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         CustomFormField(
                           controller: newPasswordController,
                           focusNode: newPasswordFocusNode,
-                          hintText: 'Make it harder',
+                          hintText: 'Don\'t share your password!',
                           isPassword: true,
                           obscureText: !_newPasswordVisible,
-                          action: () {
+                          onTap: () {
                             setState(() {
                               _newPasswordVisible = !_newPasswordVisible;
                             });
@@ -130,12 +126,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       ? const LoadingButton()
                       : CustomButton(
                           title: 'Update',
-                          action: () {
+                          onTap: () {
                             context.read<AuthBloc>().add(
                                   ChangePasswordEvent(
                                     email: _user!.email!,
-                                    currentPassword:
-                                        currentPasswordController.text,
+                                    currentPassword: currentPasswordController.text,
                                     newPassword: newPasswordController.text,
                                   ),
                                 );

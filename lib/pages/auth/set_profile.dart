@@ -47,8 +47,7 @@ class _SetProfilePageState extends State<SetProfilePage> {
 
   void updateFieldState() {
     setState(() {
-      areFieldsEmpty =
-          displayNameController.text.isEmpty || usernameController.text.isEmpty;
+      areFieldsEmpty = displayNameController.text.isEmpty || usernameController.text.isEmpty;
     });
   }
 
@@ -58,10 +57,19 @@ class _SetProfilePageState extends State<SetProfilePage> {
       create: (context) => UserBloc(),
       child: BlocListener<UserBloc, UserState>(
         listener: (context, state) {
+          if (state is UsernameAvailable) {
+            context.read<UserBloc>().add(
+                  UploadToStorageEvent(
+                    uid: widget.model.uid!,
+                    file: image!,
+                  ),
+                );
+          }
+
           if (state is UserStoreFileSuccess) {
             final finalModel = widget.model.copyWith(
               displayName: displayNameController.text,
-              username: usernameController.text,
+              username: cleanUsernameSearch(usernameController.text),
               profilePicture: state.url,
               lastActive: DateTime.now().millisecondsSinceEpoch.toString(),
               isOnline: true,
@@ -88,15 +96,6 @@ class _SetProfilePageState extends State<SetProfilePage> {
         },
         child: BlocBuilder<UserBloc, UserState>(
           builder: (context, state) {
-            if (state is UserLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    color: blue,
-                  ),
-                ),
-              );
-            }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -106,8 +105,7 @@ class _SetProfilePageState extends State<SetProfilePage> {
                 centerTitle: true,
               ),
               body: ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                 children: [
                   GestureDetector(
                     onTap: () async {
@@ -130,8 +128,7 @@ class _SetProfilePageState extends State<SetProfilePage> {
                           child: CircleAvatar(
                             radius: 70,
                             backgroundColor: Colors.white,
-                            foregroundImage:
-                                image != null ? FileImage(image!) : null,
+                            foregroundImage: image != null ? FileImage(image!) : null,
                             child: Image.asset(
                               'assets/icons/add_photo.png',
                               scale: 2,
@@ -177,20 +174,17 @@ class _SetProfilePageState extends State<SetProfilePage> {
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: CustomButton(
-                    title: 'Continue',
-                    disabled: areFieldsEmpty || image == null,
-                    action: () {
-                      if (!areFieldsEmpty && image != null) {
-                        context.read<UserBloc>().add(
-                              UploadToStorageEvent(
-                                uid: widget.model.uid!,
-                                file: image!,
-                              ),
-                            );
-                      }
-                    },
-                  ),
+                  child: state is UserLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Continue',
+                          disabled: areFieldsEmpty || image == null,
+                          onTap: () {
+                            if (!areFieldsEmpty && image != null) {
+                              context.read<UserBloc>().add(CheckUsernameEvent(usernameController.text));
+                            }
+                          },
+                        ),
                 ),
               ),
             );

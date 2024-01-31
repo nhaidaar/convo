@@ -1,23 +1,24 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/user_model.dart';
+import 'package:convo/widgets/default_avatar.dart';
 import 'package:flutter/material.dart';
 
 class SearchCard extends StatelessWidget {
   final UserModel model;
-  final VoidCallback? action;
+  final VoidCallback? onTap;
   final bool showIcon;
   const SearchCard({
     super.key,
     required this.model,
-    this.action,
+    this.onTap,
     this.showIcon = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: action,
+      onTap: onTap,
       child: Container(
         height: 90,
         width: double.infinity,
@@ -32,20 +33,10 @@ class SearchCard extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: model.profilePicture.toString(),
               imageBuilder: (context, imageProvider) {
-                return CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.transparent,
-                  foregroundImage: imageProvider,
-                );
+                return DefaultAvatar(image: imageProvider);
               },
               placeholder: (context, url) {
-                return const CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: AssetImage(
-                    'assets/images/profile.jpg',
-                  ),
-                );
+                return const DefaultAvatar();
               },
             ),
             const SizedBox(
@@ -64,10 +55,7 @@ class SearchCard extends StatelessWidget {
                   ),
                   Text(
                     '@${model.username}',
-                    style: mediumTS.copyWith(
-                      fontSize: 15,
-                      color: Colors.grey,
-                    ),
+                    style: mediumTS.copyWith(fontSize: 15, color: Colors.grey),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

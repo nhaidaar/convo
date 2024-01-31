@@ -124,13 +124,10 @@ class _LoginPageState extends State<LoginPage> {
                       : CustomButton(
                           title: 'Continue with Phone',
                           disabled: isPhoneEmpty,
-                          action: () {
-                            final finalNumber =
-                                countryCode + phoneController.text;
+                          onTap: () {
+                            final finalNumber = countryCode + phoneController.text;
                             if (!isPhoneEmpty) {
-                              context
-                                  .read<AuthBloc>()
-                                  .add(PhoneSendOtpEvent(finalNumber));
+                              context.read<AuthBloc>().add(PhoneSendOtpEvent(finalNumber));
                             }
                           },
                         ),
@@ -153,8 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         Text(
                           'or with',
-                          style: mediumTS.copyWith(
-                              fontSize: 16, color: Colors.grey),
+                          style: mediumTS.copyWith(fontSize: 16, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(
@@ -178,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       LoginCircle(
                         iconUrl: 'assets/icons/login_email.png',
-                        action: () {
+                        onTap: () {
                           Navigator.of(context).push(
                             PageTransition(
                               child: const LoginEmailPage(),
@@ -189,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       LoginCircle(
                         iconUrl: 'assets/icons/login_google.png',
-                        action: () {
+                        onTap: () {
                           showSnackbar(context, 'Coming soon!');
                         },
                       ),

@@ -1,34 +1,34 @@
 class MessageModel {
-  final String roomId;
-  final String image;
-  final String message;
-  final String sendBy;
-  final String sendAt;
-  final List<String> readBy;
-  final List<String> readAt;
-  final List<String> hiddenFor;
+  final String? roomId;
+  final String? image;
+  final String? message;
+  final String? sendBy;
+  final String? sendAt;
+  final List<String>? readBy;
+  final List<String>? readAt;
+  final List<String>? hiddenFor;
 
   MessageModel({
-    required this.roomId,
-    required this.image,
-    required this.message,
-    required this.sendBy,
-    required this.sendAt,
-    required this.readBy,
-    required this.readAt,
-    required this.hiddenFor,
+    this.roomId,
+    this.image,
+    this.message,
+    this.sendBy,
+    this.sendAt,
+    this.readBy,
+    this.readAt,
+    this.hiddenFor,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'roomId': roomId,
-      'image': image,
-      'message': message,
-      'sendBy': sendBy,
-      'sendAt': sendAt,
-      'readBy': readBy,
-      'readAt': readAt,
-      'hiddenFor': hiddenFor,
+      'roomId': roomId ?? '',
+      'image': image ?? '',
+      'message': message ?? '',
+      'sendBy': sendBy ?? '',
+      'sendAt': sendAt ?? '',
+      'readBy': readBy ?? [],
+      'readAt': readAt ?? [],
+      'hiddenFor': hiddenFor ?? [],
     };
   }
 

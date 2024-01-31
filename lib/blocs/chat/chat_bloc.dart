@@ -101,11 +101,27 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<MakeChatRoomEvent>((event, emit) async {
       emit(ChatLoading());
       try {
-        final data = await _chatService.makeChatRoom(
+        // Check is chat room already exists
+        await _chatService
+            .isChatRoomExists(
           myUid: event.myUid,
           friendUid: event.friendUid,
-        );
-        emit(MakeChatRoomSuccess(data));
+        )
+            .then((value) async {
+          // If true, pass the ChatRoomModel
+          if (value != null) {
+            emit(MakeChatRoomSuccess(value));
+
+            // If false, make the chat room
+          } else {
+            await _chatService
+                .makeChatRoom(
+                  myUid: event.myUid,
+                  friendUid: event.friendUid,
+                )
+                .then((value) => emit(MakeChatRoomSuccess(value)));
+          }
+        });
       } catch (e) {
         emit(ChatError(e.toString()));
       }

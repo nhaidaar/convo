@@ -2,15 +2,17 @@ import 'package:convo/blocs/user/user_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/user_model.dart';
-import 'package:convo/pages/chats/group_setprofile.dart';
-import 'package:convo/pages/chats/widgets/search_card.dart';
-import 'package:convo/pages/chats/widgets/selected_member_card.dart';
+import 'package:convo/pages/group/add/group_setprofile.dart';
+import 'package:convo/widgets/card_searchmember.dart';
+import 'package:convo/widgets/card_selectedmember.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+
+import '../../../widgets/default_leading.dart';
 
 class CreateGroup extends StatefulWidget {
   const CreateGroup({super.key});
@@ -37,10 +39,7 @@ class _CreateGroupState extends State<CreateGroup> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.symmetric(
@@ -70,7 +69,7 @@ class _CreateGroupState extends State<CreateGroup> {
                         members.length,
                         (index) {
                           return SelectedMemberCard(
-                            action: () {
+                            onTap: () {
                               setState(() {
                                 members.remove(members[index]);
                               });
@@ -113,9 +112,7 @@ class _CreateGroupState extends State<CreateGroup> {
                     height: 30,
                   ),
                   Text(
-                    (state is UserSearchSuccess || state is UserLoading)
-                        ? 'Search Result'
-                        : '',
+                    (state is UserSearchSuccess || state is UserLoading) ? 'Search Result' : '',
                     style: mediumTS.copyWith(fontSize: 16),
                   ),
                   const SizedBox(
@@ -135,7 +132,7 @@ class _CreateGroupState extends State<CreateGroup> {
                               children: state.userList.map((user) {
                                 return SearchCard(
                                   model: user,
-                                  action: () {
+                                  onTap: () {
                                     if (!members.contains(user)) {
                                       setState(() {
                                         members.add(user);
@@ -159,7 +156,7 @@ class _CreateGroupState extends State<CreateGroup> {
                   child: CustomButton(
                     title: 'Next',
                     disabled: members.isEmpty,
-                    action: () async {
+                    onTap: () async {
                       if (members.isNotEmpty) {
                         Navigator.of(context).push(
                           PageTransition(

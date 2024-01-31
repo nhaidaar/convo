@@ -10,26 +10,26 @@ class UserService {
   final _firestore = FirebaseFirestore.instance.collection('users');
   final user = FirebaseAuth.instance.currentUser;
 
-  Future<bool> isUserExists(String uid) async {
-    try {
-      final userDocSnapshot = await _firestore.doc(uid).get();
-      return userDocSnapshot.exists;
-    } catch (e) {
-      return false;
-    }
-  }
-
   Stream<UserModel> streamUserData(String uid) {
     return _firestore.doc(uid).snapshots().map((user) {
       return UserModel.fromMap(user.data()!);
     });
   }
 
+  Future<UserModel?> getSelfData() async {
+    try {
+      DocumentSnapshot userData = await _firestore.doc(user!.uid).get();
+      UserModel userModel = UserModel.fromMap(userData.data() as Map<String, dynamic>);
+      return userModel;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<UserModel?> getUserData(String uid) async {
     try {
       DocumentSnapshot userData = await _firestore.doc(uid).get();
-      UserModel userModel =
-          UserModel.fromMap(userData.data() as Map<String, dynamic>);
+      UserModel userModel = UserModel.fromMap(userData.data() as Map<String, dynamic>);
       return userModel;
     } catch (e) {
       return null;
@@ -40,8 +40,7 @@ class UserService {
     List<String> tokens = [];
     for (String uid in uids) {
       DocumentSnapshot userData = await _firestore.doc(uid).get();
-      UserModel userModel =
-          UserModel.fromMap(userData.data() as Map<String, dynamic>);
+      UserModel userModel = UserModel.fromMap(userData.data() as Map<String, dynamic>);
       String token = userModel.pushToken.toString();
       tokens.add(token);
     }
@@ -81,10 +80,8 @@ class UserService {
     required String exceptUid,
   }) async {
     try {
-      QuerySnapshot userSnapshot = await _firestore
-          .where('username', isEqualTo: search)
-          .where('uid', isNotEqualTo: exceptUid)
-          .get();
+      QuerySnapshot userSnapshot =
+          await _firestore.where('username', isEqualTo: search).where('uid', isNotEqualTo: exceptUid).get();
 
       List<UserModel> users = [];
 
@@ -94,6 +91,19 @@ class UserService {
         }).toList();
       }
       return users;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> checkUsername(String username) async {
+    try {
+      QuerySnapshot userSnapshot = await _firestore.where('username', isEqualTo: username).get();
+
+      if (userSnapshot.docs.isNotEmpty) {
+        return true; // Username taken
+      }
+      return false;
     } catch (e) {
       rethrow;
     }

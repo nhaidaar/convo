@@ -23,6 +23,8 @@ class GetUserDataEvent extends UserEvent {
   List<Object> get props => [uid];
 }
 
+class GetSelfDataEvent extends UserEvent {}
+
 class PostUserDataEvent extends UserEvent {
   final UserModel user;
   const PostUserDataEvent(this.user);
@@ -61,4 +63,12 @@ class UpdateUserDataEvent extends UserEvent {
 
   @override
   List<Object> get props => [model];
+}
+
+class CheckUsernameEvent extends UserEvent {
+  final String username;
+  const CheckUsernameEvent(this.username);
+
+  @override
+  List<Object> get props => [username];
 }

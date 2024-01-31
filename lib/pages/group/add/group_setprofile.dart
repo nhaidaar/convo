@@ -5,14 +5,16 @@ import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/models/user_model.dart';
-import 'package:convo/pages/chats/group_room.dart';
-import 'package:convo/pages/chats/widgets/search_card.dart';
+import 'package:convo/pages/group/group_room.dart';
+import 'package:convo/widgets/card_searchmember.dart';
 import 'package:convo/widgets/custom_button.dart';
 import 'package:convo/widgets/custom_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+
+import '../../../widgets/default_leading.dart';
 
 class CreateGroupNext extends StatefulWidget {
   final List<UserModel> members;
@@ -76,10 +78,7 @@ class _CreateGroupNextState extends State<CreateGroupNext> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.symmetric(
@@ -108,8 +107,7 @@ class _CreateGroupNextState extends State<CreateGroupNext> {
                           child: CircleAvatar(
                             radius: 70,
                             backgroundColor: Colors.white,
-                            foregroundImage:
-                                image != null ? FileImage(image!) : null,
+                            foregroundImage: image != null ? FileImage(image!) : null,
                             child: Image.asset(
                               'assets/icons/add_photo.png',
                               scale: 2,
@@ -163,7 +161,7 @@ class _CreateGroupNextState extends State<CreateGroupNext> {
                       : CustomButton(
                           title: 'Create Group',
                           disabled: isTitleEmpty || image == null,
-                          action: () async {
+                          onTap: () async {
                             if (!isTitleEmpty && image != null) {
                               List<String> membersUid = [currentUser!.uid];
 

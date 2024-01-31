@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../widgets/default_leading.dart';
+
 class RegisterEmailPage extends StatefulWidget {
   const RegisterEmailPage({super.key});
 
@@ -47,8 +49,7 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
 
   void updateFieldState() {
     setState(() {
-      areFieldsEmpty =
-          emailController.text.isEmpty || passwordController.text.isEmpty;
+      areFieldsEmpty = emailController.text.isEmpty || passwordController.text.isEmpty;
     });
   }
 
@@ -77,15 +78,6 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
         },
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if (state is AuthLoading) {
-              return Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(
-                    color: blue,
-                  ),
-                ),
-              );
-            }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -93,10 +85,7 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
                 padding: const EdgeInsets.all(30),
@@ -130,7 +119,7 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
                     hintText: '******',
                     isPassword: true,
                     obscureText: passwordHidden,
-                    action: () {
+                    onTap: () {
                       setState(() {
                         passwordHidden = !passwordHidden;
                       });
@@ -139,20 +128,22 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
                   const SizedBox(
                     height: 40,
                   ),
-                  CustomButton(
-                    title: 'Register',
-                    disabled: areFieldsEmpty,
-                    action: () {
-                      if (!areFieldsEmpty) {
-                        context.read<AuthBloc>().add(
-                              EmailSignUpEvent(
-                                emailController.text,
-                                passwordController.text,
-                              ),
-                            );
-                      }
-                    },
-                  ),
+                  state is AuthLoading
+                      ? const LoadingButton()
+                      : CustomButton(
+                          title: 'Register',
+                          disabled: areFieldsEmpty,
+                          onTap: () {
+                            if (!areFieldsEmpty) {
+                              context.read<AuthBloc>().add(
+                                    EmailSignUpEvent(
+                                      emailController.text,
+                                      passwordController.text,
+                                    ),
+                                  );
+                            }
+                          },
+                        ),
                 ],
               ),
               bottomNavigationBar: BottomAppBar(

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class LoginCircle extends StatelessWidget {
   final String iconUrl;
-  final VoidCallback? action;
-  const LoginCircle({super.key, this.action, required this.iconUrl});
+  final VoidCallback? onTap;
+  const LoginCircle({super.key, this.onTap, required this.iconUrl});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: action,
+      onTap: onTap,
       child: Container(
         height: 60,
         width: 60,

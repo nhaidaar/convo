@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../widgets/default_leading.dart';
+
 class EditProfilePage extends StatefulWidget {
   final UserModel user;
   const EditProfilePage({super.key, required this.user});
@@ -24,6 +26,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final displayNameController = TextEditingController();
   final usernameController = TextEditingController();
 
+  String oldUsername = '';
   bool areFieldsEmpty = false;
   File? image;
 
@@ -31,7 +34,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     credentialController.text = widget.user.credentials.toString();
     displayNameController.text = widget.user.displayName.toString();
-    usernameController.text = widget.user.username.toString();
+
+    oldUsername = widget.user.username.toString();
+    usernameController.text = oldUsername;
+
     super.initState();
     displayNameController.addListener(updateFieldState);
     usernameController.addListener(updateFieldState);
@@ -49,8 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void updateFieldState() {
     setState(() {
-      areFieldsEmpty =
-          displayNameController.text.isEmpty || usernameController.text.isEmpty;
+      areFieldsEmpty = displayNameController.text.isEmpty || usernameController.text.isEmpty;
     });
   }
 
@@ -61,6 +66,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         create: (context) => UserBloc(),
         child: BlocConsumer<UserBloc, UserState>(
           listener: (context, state) {
+            if (state is UsernameAvailable) {
+              handleImageUpload(context);
+            }
+
             if (state is UserStoreFileSuccess) {
               context.read<UserBloc>().add(
                     UpdateUserDataEvent(
@@ -83,6 +92,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               );
               showSnackbar(context, 'Profile updated!');
             }
+
+            if (state is UserError) {
+              showSnackbar(context, state.e);
+            }
           },
           builder: (context, state) {
             return Scaffold(
@@ -92,14 +105,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   style: semiboldTS,
                 ),
                 centerTitle: true,
-                leading: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back_ios_new),
-                ),
+                leading: const DefaultLeading(),
               ),
               body: ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                 children: [
                   Center(
                     child: Stack(
@@ -116,8 +125,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               backgroundImage: NetworkImage(
                                 widget.user.profilePicture.toString(),
                               ),
-                              foregroundImage:
-                                  image != null ? FileImage(image!) : null,
+                              foregroundImage: image != null ? FileImage(image!) : null,
                             ),
                           ),
                         ),
@@ -219,23 +227,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       : CustomButton(
                           title: 'Update',
                           disabled: areFieldsEmpty,
-                          action: () {
-                            if (image != null) {
-                              context.read<UserBloc>().add(
-                                    UploadToStorageEvent(
-                                      uid: widget.user.uid.toString(),
-                                      file: image!,
-                                    ),
-                                  );
-                            } else {
-                              context.read<UserBloc>().add(
-                                    UpdateUserDataEvent(
-                                      widget.user.copyWith(
-                                        displayName: displayNameController.text,
-                                        username: usernameController.text,
-                                      ),
-                                    ),
-                                  );
+                          onTap: () {
+                            if (!areFieldsEmpty) {
+                              if (usernameController.text != oldUsername) {
+                                context.read<UserBloc>().add(CheckUsernameEvent(usernameController.text));
+                              } else {
+                                handleImageUpload(context);
+                              }
                             }
                           },
                         ),
@@ -246,5 +244,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
       ),
     );
+  }
+
+  void handleImageUpload(BuildContext context) {
+    if (image != null) {
+      context.read<UserBloc>().add(
+            UploadToStorageEvent(
+              uid: widget.user.uid.toString(),
+              file: image!,
+            ),
+          );
+    } else {
+      context.read<UserBloc>().add(
+            UpdateUserDataEvent(
+              widget.user.copyWith(
+                displayName: displayNameController.text,
+                username: usernameController.text,
+              ),
+            ),
+          );
+    }
   }
 }

@@ -1,18 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:convo/blocs/chat/chat_bloc.dart';
-import 'package:convo/blocs/user/user_bloc.dart';
-import 'package:convo/config/method.dart';
-import 'package:convo/config/theme.dart';
-import 'package:convo/models/grouproom_model.dart';
-import 'package:convo/pages/chats/chat_room.dart';
-import 'package:convo/pages/chats/widgets/member_card.dart';
-import 'package:convo/pages/home.dart';
-import 'package:convo/services/chat_services.dart';
-import 'package:convo/widgets/custom_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+
+import '../../blocs/chat/chat_bloc.dart';
+import '../../blocs/user/user_bloc.dart';
+import '../../config/method.dart';
+import '../../config/theme.dart';
+import '../../models/grouproom_model.dart';
+import '../../widgets/card_member.dart';
+import '../../widgets/default_leading.dart';
+import '../home.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/default_avatar.dart';
+
+import '../chat/chat_room.dart';
 
 class GroupMember extends StatefulWidget {
   final GroupRoomModel model;
@@ -24,6 +27,7 @@ class GroupMember extends StatefulWidget {
 
 class _GroupMemberState extends State<GroupMember> {
   final user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -48,8 +52,7 @@ class _GroupMemberState extends State<GroupMember> {
                 ),
                 (route) => false,
               );
-              showSnackbar(
-                  context, "You've left '${widget.model.title}' group !");
+              showSnackbar(context, "You've left '${widget.model.title}' group !");
             }
 
             if (state is ChatError) {
@@ -59,10 +62,7 @@ class _GroupMemberState extends State<GroupMember> {
           child: Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.transparent,
-              leading: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new),
-              ),
+              leading: const DefaultLeading(),
             ),
             extendBodyBehindAppBar: true,
             body: ListView(
@@ -72,31 +72,20 @@ class _GroupMemberState extends State<GroupMember> {
                   children: [
                     Hero(
                       tag: widget.model.groupPicture.toString(),
-                      child: CachedNetworkImage(
-                        imageUrl: widget.model.groupPicture.toString(),
-                        imageBuilder: (context, imageProvider) {
-                          return Container(
-                            height: 160,
-                            width: 160,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
-                        },
-                        placeholder: (context, url) {
-                          return Container(
-                            height: 160,
-                            width: 160,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              color: Colors.grey.shade300,
-                            ),
-                          );
-                        },
+                      child: GestureDetector(
+                        onTap: () => clickImage(context, imageUrl: widget.model.groupPicture.toString()),
+                        child: CachedNetworkImage(
+                          imageUrl: widget.model.groupPicture.toString(),
+                          imageBuilder: (context, imageProvider) {
+                            return DefaultAvatar(
+                              radius: 80,
+                              image: imageProvider,
+                            );
+                          },
+                          placeholder: (context, url) {
+                            return const DefaultAvatar(radius: 80);
+                          },
+                        ),
                       ),
                     ),
                     Text(
@@ -105,8 +94,7 @@ class _GroupMemberState extends State<GroupMember> {
                     ),
                     Text(
                       '${widget.model.members!.length + 1} members',
-                      style:
-                          mediumTS.copyWith(fontSize: 18, color: Colors.grey),
+                      style: mediumTS.copyWith(fontSize: 18, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -120,60 +108,44 @@ class _GroupMemberState extends State<GroupMember> {
                 const SizedBox(
                   height: 16,
                 ),
+
+                // Me
                 BlocProvider(
-                  create: (context) =>
-                      UserBloc()..add(StreamUserDataEvent(user!.uid)),
+                  create: (context) => UserBloc()..add(GetUserDataEvent(user!.uid)),
                   child: BlocBuilder<UserBloc, UserState>(
                     builder: (context, state) {
-                      if (state is UserStreamDataSuccess) {
+                      if (state is UserGetDataSuccess) {
                         return MemberCard(
                           model: state.model,
                           isAdmin: state.model.uid == widget.model.admin,
+                          isYou: true,
                         );
                       }
-                      return CircularProgressIndicator(
-                        color: blue,
+                      return Center(
+                        child: CircularProgressIndicator(color: blue),
                       );
                     },
                   ),
                 ),
+
+                // Other Member
                 ...List.generate(
                   widget.model.members!.length,
                   (index) {
                     return BlocProvider(
-                      create: (context) => UserBloc()
-                        ..add(
-                            StreamUserDataEvent(widget.model.members![index])),
+                      create: (context) => UserBloc()..add(GetUserDataEvent(widget.model.members![index])),
                       child: BlocBuilder<UserBloc, UserState>(
                         builder: (context, state) {
-                          if (state is UserStreamDataSuccess) {
+                          if (state is UserGetDataSuccess) {
                             return MemberCard(
                               model: state.model,
                               isAdmin: state.model.uid == widget.model.admin,
-                              action: () async {
-                                await ChatService()
-                                    .isChatRoomExists(
-                                        myUid: user!.uid,
-                                        friendUid: state.model.uid.toString())
-                                    .then(
-                                  (value) {
-                                    value == null
-                                        ? BlocProvider.of<ChatBloc>(context)
-                                            .add(
-                                            MakeChatRoomEvent(
-                                              myUid: user!.uid,
-                                              friendUid:
-                                                  state.model.uid.toString(),
-                                            ),
-                                          )
-                                        : Navigator.of(context).push(
-                                            PageTransition(
-                                              child: ChatRoom(model: value),
-                                              type: PageTransitionType
-                                                  .rightToLeft,
-                                            ),
-                                          );
-                                  },
+                              onTap: () {
+                                BlocProvider.of<ChatBloc>(context).add(
+                                  MakeChatRoomEvent(
+                                    myUid: user!.uid,
+                                    friendUid: state.model.uid.toString(),
+                                  ),
                                 );
                               },
                             );
@@ -198,7 +170,7 @@ class _GroupMemberState extends State<GroupMember> {
                       iconUrl: 'assets/icons/logout.png',
                       title: 'Leave from Group',
                       buttonColor: Colors.red,
-                      action: () {
+                      onTap: () {
                         handleLeaveGroup(context);
                       },
                     );
@@ -232,8 +204,7 @@ class _GroupMemberState extends State<GroupMember> {
                 style: mediumTS.copyWith(color: Colors.red),
                 children: [
                   TextSpan(
-                    text:
-                        'You will no longer receive messages and updates from this group.',
+                    text: 'You will no longer receive messages and updates from this group.',
                     style: regularTS.copyWith(color: Colors.black),
                   ),
                 ],
@@ -248,10 +219,9 @@ class _GroupMemberState extends State<GroupMember> {
                     child: CustomButton(
                       title: 'Leave',
                       buttonColor: Colors.red,
-                      action: () {
+                      onTap: () {
                         Navigator.of(context).pop();
-                        context.read<ChatBloc>().add(
-                            LeaveGroupEvent(widget.model.roomId.toString()));
+                        context.read<ChatBloc>().add(LeaveGroupEvent(widget.model.roomId.toString()));
                       },
                     ),
                   ),
@@ -263,7 +233,7 @@ class _GroupMemberState extends State<GroupMember> {
                       title: 'Nevermind',
                       buttonColor: Colors.red,
                       invert: true,
-                      action: () {
+                      onTap: () {
                         Navigator.of(context).pop();
                       },
                     ),

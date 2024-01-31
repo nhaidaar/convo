@@ -1,13 +1,18 @@
 import 'dart:typed_data';
 
 import 'package:another_flushbar/flushbar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:convo/config/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+
+import '../blocs/chat/chat_bloc.dart';
+import '../widgets/custom_button.dart';
 
 void showSnackbar(BuildContext context, String message) {
   Flushbar(
@@ -64,6 +69,66 @@ Future<CroppedFile?> cropImage(XFile image) async {
   return cropped;
 }
 
+void clickImage(BuildContext context, {required String imageUrl}) {
+  showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  placeholder: (context, url) {
+                    return const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              BlocProvider(
+                create: (context) => ChatBloc(),
+                child: BlocConsumer<ChatBloc, ChatState>(
+                  listener: (context, state) {
+                    if (state is ChatSuccess) {
+                      Navigator.of(context).pop();
+                      showSnackbar(context, 'Image saved!');
+                    }
+
+                    if (state is ChatError) {
+                      showSnackbar(context, state.e);
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is ChatLoading) {
+                      return const LoadingButton();
+                    }
+                    return CustomButton(
+                      title: 'Save Image',
+                      onTap: () {
+                        context.read<ChatBloc>().add(SaveImageEvent(imageUrl));
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      });
+}
+
 Future<void> saveImage(String url) async {
   final response = await http.get(Uri.parse(url));
   await ImageGallerySaver.saveImage(
@@ -112,7 +177,7 @@ String formatTimeForChat(String time) {
 }
 
 String cleanUsernameSearch(String value) {
-  return value.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+  return value.replaceAll(RegExp(r'[^a-zA-Z0-9_.]'), '');
 }
 
 String getLastActiveTime({
@@ -126,9 +191,7 @@ String getLastActiveTime({
   DateTime now = DateTime.now();
 
   String formattedTime = TimeOfDay.fromDateTime(time).format(context);
-  if (time.day == now.day &&
-      time.month == now.month &&
-      time.year == time.year) {
+  if (time.day == now.day && time.month == now.month && time.year == time.year) {
     return 'Last seen today at $formattedTime';
   }
 

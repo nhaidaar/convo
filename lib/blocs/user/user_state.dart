@@ -52,3 +52,5 @@ final class UserSearchSuccess extends UserState {
   @override
   List<Object> get props => [userList];
 }
+
+final class UsernameAvailable extends UserState {}

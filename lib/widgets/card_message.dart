@@ -1,15 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:convo/blocs/chat/chat_bloc.dart';
 import 'package:convo/config/method.dart';
 import 'package:convo/config/theme.dart';
 import 'package:convo/models/grouproom_model.dart';
 import 'package:convo/models/message_model.dart';
 import 'package:convo/services/chat_services.dart';
-import 'package:convo/services/user_services.dart';
 import 'package:convo/widgets/custom_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../blocs/user/user_bloc.dart';
 
 class MessageOut extends StatelessWidget {
   final GroupRoomModel? group;
@@ -21,7 +22,7 @@ class MessageOut extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       child: InkWell(
-        onLongPress: () => messageDetails(context, model, false),
+        onLongPress: () => messageDetails(context, model: model, isReceived: false),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
@@ -29,22 +30,29 @@ class MessageOut extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Read tick
                 Image.asset(
                   'assets/icons/read.png',
                   scale: 2,
-                  color: group != null
-                      ? model.readAt.length == group!.members!.length
-                          ? blue
-                          : null
-                      : model.readAt.isNotEmpty
-                          ? blue
-                          : null,
+                  color:
+                      // Group Chat
+                      group != null
+                          // Are all members read the chat?
+                          ? model.readAt!.length == group!.members!.length
+                              ? blue
+                              : null
+                          // Personal Chat
+                          : model.readAt!.isNotEmpty
+                              ? blue
+                              : null,
                 ),
                 const SizedBox(
                   height: 6,
                 ),
+
+                // Time of Message
                 Text(
-                  formatTimeForChat(model.sendAt),
+                  formatTimeForChat(model.sendAt.toString()),
                   style: regularTS.copyWith(fontSize: 12),
                 )
               ],
@@ -52,6 +60,8 @@ class MessageOut extends StatelessWidget {
             const SizedBox(
               width: 12,
             ),
+
+            // Message Box
             Container(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width / 2,
@@ -67,30 +77,31 @@ class MessageOut extends StatelessWidget {
               ),
               child: model.image != ''
                   ? GestureDetector(
-                      onTap: () => clickImage(context, model),
+                      onTap: () => clickImage(context, imageUrl: model.image.toString()),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
-                          imageUrl: model.image,
-                          placeholder: (context, url) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          ),
+                          imageUrl: model.image.toString(),
+                          placeholder: (context, url) {
+                            return const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(color: Colors.white),
+                            );
+                          },
                         ),
                       ),
                     )
                   : GestureDetector(
                       onTap: () {
+                        // Copy the text when user click it
                         Clipboard.setData(
-                          ClipboardData(text: model.message),
+                          ClipboardData(text: model.message.toString()),
                         ).then((_) {
                           showSnackbar(context, 'Text copied!');
                         });
                       },
                       child: Text(
-                        model.message,
+                        model.message.toString(),
                         style: regularTS.copyWith(color: Colors.white),
                       ),
                     ),
@@ -109,14 +120,16 @@ class MessageIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (model.readAt.isEmpty) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (!model.readBy!.contains(user!.uid)) {
       ChatService().updateUnread(model);
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       child: InkWell(
-        onLongPress: () => messageDetails(context, model, true),
+        onLongPress: () => messageDetails(context, model: model, isReceived: true),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -138,22 +151,19 @@ class MessageIn extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (group != null)
+                    // Sender Name
                     Column(
                       children: [
-                        FutureBuilder(
-                          future: UserService().getUserData(model.sendBy),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
+                        BlocProvider(
+                          create: (context) => UserBloc()..add(GetUserDataEvent(model.sendBy.toString())),
+                          child: BlocBuilder<UserBloc, UserState>(
+                            builder: (context, state) {
                               return Text(
-                                snapshot.data!.displayName.toString(),
+                                (state is UserGetDataSuccess) ? state.model.displayName.toString() : 'Member',
                                 style: semiboldTS.copyWith(color: blue),
                               );
-                            }
-                            return Text(
-                              'Member',
-                              style: semiboldTS.copyWith(color: blue),
-                            );
-                          },
+                            },
+                          ),
                         ),
                         const SizedBox(
                           height: 6,
@@ -162,11 +172,11 @@ class MessageIn extends StatelessWidget {
                     ),
                   model.image != ''
                       ? GestureDetector(
-                          onTap: () => clickImage(context, model),
+                          onTap: () => clickImage(context, imageUrl: model.image.toString()),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: CachedNetworkImage(
-                              imageUrl: model.image,
+                              imageUrl: model.image.toString(),
                               placeholder: (context, url) => Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: CircularProgressIndicator(
@@ -179,13 +189,13 @@ class MessageIn extends StatelessWidget {
                       : GestureDetector(
                           onTap: () {
                             Clipboard.setData(
-                              ClipboardData(text: model.message),
+                              ClipboardData(text: model.message.toString()),
                             ).then((_) {
                               showSnackbar(context, 'Text copied!');
                             });
                           },
                           child: Text(
-                            model.message,
+                            model.message.toString(),
                             style: regularTS,
                           ),
                         ),
@@ -196,7 +206,7 @@ class MessageIn extends StatelessWidget {
               width: 12,
             ),
             Text(
-              formatTimeForChat(model.sendAt),
+              formatTimeForChat(model.sendAt.toString()),
               style: regularTS.copyWith(fontSize: 12),
             ),
           ],
@@ -206,66 +216,11 @@ class MessageIn extends StatelessWidget {
   }
 }
 
-void clickImage(BuildContext context, MessageModel model) {
-  showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: CachedNetworkImage(
-                  imageUrl: model.image,
-                  placeholder: (context, url) => const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              BlocProvider(
-                create: (context) => ChatBloc(),
-                child: BlocConsumer<ChatBloc, ChatState>(
-                  listener: (context, state) {
-                    if (state is ChatSuccess) {
-                      showSnackbar(context, 'Image saved!');
-                    }
-
-                    if (state is ChatError) {
-                      showSnackbar(context, state.e);
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is ChatLoading) {
-                      return const LoadingButton();
-                    }
-                    return CustomButton(
-                      title: 'Save Image',
-                      action: () {
-                        context
-                            .read<ChatBloc>()
-                            .add(SaveImageEvent(model.image));
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      });
-}
-
-void messageDetails(BuildContext context, MessageModel model, bool received) {
+void messageDetails(
+  BuildContext context, {
+  required MessageModel model,
+  required bool isReceived,
+}) {
   showDialog(
       context: context,
       builder: (_) {
@@ -282,43 +237,47 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
                 'Send by ',
                 style: regularTS,
               ),
-              FutureBuilder(
-                future: UserService().getUserData(model.sendBy),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Text(
-                      '${snapshot.data!.displayName.toString()} at ${formatTimeForChat(model.sendAt)}',
-                      style: mediumTS,
-                    );
-                  }
-                  return const Text('');
-                },
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Text(
-                'Read by ${model.readBy.isEmpty ? 'none' : ''}',
-                style: regularTS,
-              ),
-              ...List.generate(model.readBy.length, (index) {
-                return FutureBuilder(
-                  future: UserService().getUserData(model.readBy[index]),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
+              BlocProvider(
+                create: (context) => UserBloc()..add(GetUserDataEvent(model.sendBy.toString())),
+                child: BlocBuilder<UserBloc, UserState>(
+                  builder: (context, state) {
+                    if (state is UserGetDataSuccess) {
                       return Text(
-                        '${snapshot.data!.displayName.toString()} at ${formatTimeForChat(model.readAt[index])}',
+                        '${state.model.displayName.toString()} at ${formatTimeForChat(model.sendAt.toString())}',
                         style: mediumTS,
                       );
                     }
                     return const Text('');
                   },
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              Text(
+                'Read by ${model.readBy!.isEmpty ? 'none' : ''}',
+                style: regularTS,
+              ),
+              ...List.generate(model.readBy!.length, (index) {
+                return BlocProvider(
+                  create: (context) => UserBloc()..add(GetUserDataEvent(model.readBy![index])),
+                  child: BlocBuilder<UserBloc, UserState>(
+                    builder: (context, state) {
+                      if (state is UserGetDataSuccess) {
+                        return Text(
+                          '${state.model.displayName.toString()} at ${formatTimeForChat(model.sendAt.toString())}',
+                          style: mediumTS,
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
                 );
               }),
               const SizedBox(
                 height: 30,
               ),
-              !received
+              !isReceived
                   ? Row(
                       children: [
                         Expanded(
@@ -327,7 +286,7 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
                             titleSize: 14,
                             padding: 12,
                             invert: true,
-                            action: () {
+                            onTap: () {
                               ChatService().deleteMessageForMe(model);
                               Navigator.pop(context);
                             },
@@ -341,7 +300,7 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
                             title: 'Delete for Everyone',
                             titleSize: 14,
                             padding: 12,
-                            action: () {
+                            onTap: () {
                               ChatService().deleteMessageForEveryone(model);
                               Navigator.pop(context);
                             },
@@ -354,7 +313,7 @@ void messageDetails(BuildContext context, MessageModel model, bool received) {
                       titleSize: 14,
                       padding: 12,
                       invert: true,
-                      action: () {
+                      onTap: () {
                         ChatService().deleteMessageForMe(model);
                         Navigator.pop(context);
                       },

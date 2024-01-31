@@ -48,6 +48,21 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         final model = await UserService().getUserData(event.uid);
         if (model != null) {
           emit(UserGetDataSuccess(model));
+        } else {
+          emit(const UserError('User not found!'));
+        }
+      } catch (e) {
+        emit(UserError(e.toString()));
+      }
+    });
+    on<GetSelfDataEvent>((event, emit) async {
+      emit(UserLoading());
+      try {
+        final model = await UserService().getSelfData();
+        if (model != null) {
+          emit(UserGetDataSuccess(model));
+        } else {
+          emit(const UserError('User not found!'));
         }
       } catch (e) {
         emit(UserError(e.toString()));
@@ -70,6 +85,16 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       try {
         await UserService().updateUserData(event.model);
         emit(UserSuccess());
+      } catch (e) {
+        emit(UserError(e.toString()));
+      }
+    });
+    on<CheckUsernameEvent>((event, emit) async {
+      emit(UserLoading());
+      try {
+        await UserService().checkUsername(event.username).then((usernameTaken) {
+          usernameTaken ? emit(const UserError('Username taken!')) : emit(UsernameAvailable());
+        });
       } catch (e) {
         emit(UserError(e.toString()));
       }
