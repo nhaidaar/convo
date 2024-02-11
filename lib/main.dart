@@ -8,16 +8,16 @@ import 'package:flutter_notification_channel/notification_importance.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
-import 'blocs/auth/auth_bloc.dart';
-import 'blocs/call/call_bloc.dart';
-import 'blocs/chat/chat_bloc.dart';
-import 'blocs/user/user_bloc.dart';
+import 'src/features/auth/bloc/auth_bloc.dart';
+import 'src/features/call/bloc/call_bloc.dart';
+import 'src/features/chat/domain/bloc/chat_bloc.dart';
+import 'src/common/blocs/user_bloc.dart';
 import 'config/firebase_options.dart';
-import 'models/user_model.dart';
-import 'pages/auth/login.dart';
-import 'pages/auth/set_profile.dart';
-import 'pages/home.dart';
-import 'repositories/auth_repository.dart';
+import 'src/common/models/user_model.dart';
+import 'src/features/auth/presentation/pages/login.dart';
+import 'src/features/auth/presentation/pages/set_profile.dart';
+import 'src/features/home/presentation/pages/home.dart';
+import 'src/features/auth/domain/repositories/auth_repository.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
